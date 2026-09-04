@@ -11,11 +11,31 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Example model for portfolio contact form inquiries
+// Model for portfolio contact form inquiries
 model Contact {
   id        String   @id @default(uuid())
   name      String
   email     String
   message   String
   createdAt DateTime @default(now())
+
+  @@map("contacts")
 }
+
+// Model for portfolio projects with video stored in private Supabase bucket
+model Project {
+  id               String   @id @default(uuid())
+  title            String
+  shortDescription String   @map("short_description")
+  videoPath        String   @map("video_path")
+  thumbnailUrl     String?  @map("thumbnail_url")
+  genre            String   @default("cinema")
+  client           String?  @default("Personal Archive")
+  year             String?
+  featured         Boolean  @default(false)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("projects")
+}
+

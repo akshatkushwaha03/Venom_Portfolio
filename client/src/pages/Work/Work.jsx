@@ -1,13 +1,35 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { GENRE_CATEGORIES } from './projectsData';
+import { getProjects, deleteProject } from '@/services/api';
+import ProjectUploadModal from './ProjectUploadModal';
 import styles from './Work.module.css';
 
 export const Work = ({ id = 'work' }) => {
   // Navigation & interaction states
   const [activeGenreKey, setActiveGenreKey] = useState(null);
   const [activeProject, setActiveProject] = useState(null);
+  const [dbProjects, setDbProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const sectionRef = useRef(null);
+
+  // Fetch projects from server / Supabase PostgreSQL database
+  const loadProjects = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getProjects();
+      setDbProjects(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.warn('[WORK] Could not load database projects:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
   // Active genre object
   const activeGenre = useMemo(() => {
@@ -15,10 +37,28 @@ export const Work = ({ id = 'work' }) => {
     return GENRE_CATEGORIES.find((g) => g.key === activeGenreKey) || null;
   }, [activeGenreKey]);
 
-  // Projects of the active genre (currently empty arrays, ready for user data)
+  // Projects of the active genre (merges DB projects with any static archive items)
   const currentProjects = useMemo(() => {
-    return activeGenre?.projects || [];
-  }, [activeGenre]);
+    const staticProjects = activeGenre?.projects || [];
+    if (!activeGenreKey) {
+      return [...dbProjects, ...staticProjects];
+    }
+    const matchingDb = dbProjects.filter(
+      (p) => (p.genre || '').toLowerCase() === activeGenreKey.toLowerCase()
+    );
+    return [...matchingDb, ...staticProjects];
+  }, [activeGenreKey, dbProjects, activeGenre]);
+
+  const handleDeleteProject = async (projectId) => {
+    if (!window.confirm('Delete this project and its private video?')) return;
+    try {
+      await deleteProject(projectId);
+      setDbProjects((prev) => prev.filter((p) => p.id !== projectId));
+      setActiveProject(null);
+    } catch (err) {
+      alert(`Failed to delete project: ${err.message}`);
+    }
+  };
 
   // Keyboard accessibility: ESC key closes modal or returns to all work
   useEffect(() => {
@@ -83,10 +123,20 @@ export const Work = ({ id = 'work' }) => {
               </div>
 
               <div className={styles.headerMetaRight}>
-                <span className={styles.statusBadge}>
-                  <span className={styles.pulseDot} />
-                  <span>ACTIVE ARCHIVE : 08 DISCIPLINES</span>
-                </span>
+                <div className={styles.headerActionsRight}>
+                  <button
+                    type="button"
+                    className={styles.uploadActionBtn}
+                    onClick={() => setIsUploadModalOpen(true)}
+                  >
+                    <span className={styles.uploadPlusIcon}>+</span>
+                    <span>UPLOAD PROJECT</span>
+                  </button>
+                  <span className={styles.statusBadge}>
+                    <span className={styles.pulseDot} />
+                    <span>ACTIVE ARCHIVE : 08 DISCIPLINES</span>
+                  </span>
+                </div>
               </div>
             </header>
 
@@ -150,15 +200,26 @@ export const Work = ({ id = 'work' }) => {
           <div key={activeGenre?.key} className={styles.genreArchiveView}>
             {/* Top Navigation Bar with Back Control and Genre Switcher */}
             <div className={styles.genreTopBar}>
-              <button
-                type="button"
-                className={styles.backButton}
-                onClick={handleBackToAllWork}
-                aria-label="Return to all categories"
-              >
-                <span className={styles.backArrow}>←</span>
-                <span>ALL WORK</span>
-              </button>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className={styles.backButton}
+                  onClick={handleBackToAllWork}
+                  aria-label="Return to all categories"
+                >
+                  <span className={styles.backArrow}>←</span>
+                  <span>ALL WORK</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.uploadActionBtn}
+                  onClick={() => setIsUploadModalOpen(true)}
+                >
+                  <span className={styles.uploadPlusIcon}>+</span>
+                  <span>NEW VIDEO</span>
+                </button>
+              </div>
 
               {/* Direct Genre Switcher Pills */}
               <div className={styles.genreSwitchPills} role="tablist">
@@ -211,15 +272,29 @@ export const Work = ({ id = 'work' }) => {
                     }}
                   >
                     <div className={styles.cardVisualStage}>
-                      <img
-                        src={project.thumbnail}
-                        alt={project.title}
-                        className={styles.projectThumbnail}
-                        loading="lazy"
-                      />
+                      {project.videoUrl ? (
+                        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                          <video
+                            src={project.videoUrl}
+                            muted
+                            playsInline
+                            preload="metadata"
+                            className={styles.projectThumbnail}
+                            style={{ objectFit: 'cover' }}
+                          />
+                          <span className={styles.cardVideoTag}>▶ VIDEO</span>
+                        </div>
+                      ) : (
+                        <img
+                          src={project.thumbnail || '/creator.jpg'}
+                          alt={project.title}
+                          className={styles.projectThumbnail}
+                          loading="lazy"
+                        />
+                      )}
                       <div className={styles.cardImageOverlay} />
                       <div className={styles.viewBadge}>VIEW ↗</div>
-                      <div className={styles.cardTypeTag}>{project.projectType}</div>
+                      <div className={styles.cardTypeTag}>{project.genre || project.projectType || 'CINEMA'}</div>
                     </div>
 
                     <div className={styles.cardInfo}>
@@ -265,13 +340,23 @@ export const Work = ({ id = 'work' }) => {
 
                   <div className={styles.emptyFooterRow}>
                     <span className={styles.emptyFootMeta}>STATUS // READY FOR INGESTION</span>
-                    <button
-                      type="button"
-                      className={styles.emptyBackLink}
-                      onClick={handleBackToAllWork}
-                    >
-                      ← RETURN TO ARCHIVE DIRECTORY
-                    </button>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        className={styles.uploadActionBtn}
+                        onClick={() => setIsUploadModalOpen(true)}
+                      >
+                        <span className={styles.uploadPlusIcon}>+</span>
+                        <span>UPLOAD VIDEO TO {activeGenre?.title}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.emptyBackLink}
+                        onClick={handleBackToAllWork}
+                      >
+                        ← RETURN TO ARCHIVE DIRECTORY
+                      </button>
+                    </div>
                   </div>
 
                   {/* Editorial Reticles */}
@@ -319,14 +404,35 @@ export const Work = ({ id = 'work' }) => {
               </button>
             </div>
 
-            {/* Hero Visual */}
+            {/* Hero Visual or Private Video Stream */}
             <div className={styles.modalHeroVisual}>
-              <img
-                src={activeProject.heroImage || activeProject.thumbnail}
-                alt={activeProject.title}
-                className={styles.modalHeroImage}
-              />
-              <div className={styles.modalHeroGradient} />
+              {activeProject.videoUrl ? (
+                <div className={styles.videoPlayerContainer}>
+                  <div className={styles.videoMetaBadge}>
+                    <span className={styles.badgeDot} />
+                    <span>PRIVATE SUPABASE STREAM</span>
+                  </div>
+                  <video
+                    src={activeProject.videoUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    className={styles.modalVideoPlayer}
+                    poster={activeProject.thumbnailUrl || activeProject.thumbnail}
+                  >
+                    Your browser does not support HTML5 video streaming.
+                  </video>
+                </div>
+              ) : (
+                <>
+                  <img
+                    src={activeProject.heroImage || activeProject.thumbnail || '/creator.jpg'}
+                    alt={activeProject.title}
+                    className={styles.modalHeroImage}
+                  />
+                  <div className={styles.modalHeroGradient} />
+                </>
+              )}
             </div>
 
             {/* Modal Body */}
@@ -417,13 +523,36 @@ export const Work = ({ id = 'work' }) => {
                   className={styles.modalBottomCloseBtn}
                   onClick={() => setActiveProject(null)}
                 >
-                  <span>← BACK TO {activeGenre?.title}</span>
+                  <span>← BACK TO {activeGenre?.title || 'ARCHIVE'}</span>
                 </button>
+
+                {activeProject.id && (
+                  <button
+                    type="button"
+                    className={styles.deleteProjectBtn}
+                    onClick={() => handleDeleteProject(activeProject.id)}
+                  >
+                    <span>🗑 DELETE PROJECT</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Project Upload Modal for Private Supabase Video Ingestion */}
+      <ProjectUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        initialGenreKey={activeGenreKey || 'cinema'}
+        onProjectCreated={(newProject) => {
+          setDbProjects((prev) => [newProject, ...prev]);
+          if (activeGenreKey && (newProject.genre || '').toLowerCase() !== activeGenreKey.toLowerCase()) {
+            setActiveGenreKey(newProject.genre);
+          }
+        }}
+      />
     </section>
   );
 };

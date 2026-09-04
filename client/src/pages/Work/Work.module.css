@@ -1232,3 +1232,137 @@
     display: none;
   }
 }
+
+/* =============================================================
+   SUPABASE PRIVATE VIDEO & INGESTION EXTENSIONS
+   ============================================================= */
+
+.uploadActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(92, 22, 138, 0.8), rgba(157, 78, 221, 0.9));
+  border: 1px solid rgba(157, 78, 221, 0.5);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
+}
+
+.uploadActionBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(157, 78, 221, 0.55);
+  border-color: #ffffff;
+  background: linear-gradient(135deg, #7e22ce, #c084fc);
+}
+
+.uploadPlusIcon {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.videoPlayerContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.modalVideoPlayer {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000000;
+  outline: none;
+}
+
+.videoMetaBadge {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(13, 7, 20, 0.85);
+  border: 1px solid rgba(157, 78, 221, 0.4);
+  backdrop-filter: blur(8px);
+  border-radius: 9999px;
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  color: #c084fc;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a855f7;
+  box-shadow: 0 0 6px #a855f7;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.cardVideoTag {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background: rgba(13, 7, 20, 0.85);
+  border: 1px solid rgba(157, 78, 221, 0.35);
+  border-radius: 4px;
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: #e9d5ff;
+  z-index: 2;
+}
+
+.deleteProjectBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #fca5a5;
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteProjectBtn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.headerActionsRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
