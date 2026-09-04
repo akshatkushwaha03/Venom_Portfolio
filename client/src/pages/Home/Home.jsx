@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Hero from './Hero';
 import About from '../About';
 import Work from '../Work';
@@ -9,7 +10,6 @@ import useInteractionLayer from '@/hooks/useInteractionLayer';
 import styles from './Home.module.css';
 
 export const Home = () => {
-  // Initialize magnetic buttons, 3D tilts, and scroll velocity kinetics
   useInteractionLayer();
 
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -21,7 +21,6 @@ export const Home = () => {
     contact: false,
   });
 
-  // Track global scroll progress for the top glowing purple bar
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -37,7 +36,6 @@ export const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // IntersectionObserver for cinematic scroll entry transitions
   useEffect(() => {
     const observerOptions = {
       root: null,
@@ -84,36 +82,54 @@ export const Home = () => {
         <span className={styles.dividerGlowDot} />
       </div>
 
-      {/* 02 — ABOUT SECTION */}
+      {/* 02 — ABOUT PREVIEW */}
       <div
         data-section-id="about"
         className={`${styles.sectionWrapper} ${visibleSections.about ? styles.sectionVisible : ''}`}
       >
         <About id="about" />
+        <div className={styles.pageCtaBanner}>
+          <Link to="/about" className={styles.ctaBtn} data-magnetic>
+            <span>LEARN MORE ABOUT AKSHAT</span>
+            <span className={styles.ctaArrow}>→</span>
+          </Link>
+        </div>
       </div>
 
       <div className={styles.interSectionDivider} aria-hidden="true">
         <span className={styles.dividerGlowDot} />
       </div>
 
-      {/* 03 — WORK SECTION */}
+      {/* 03 — WORK PREVIEW */}
       <div
         data-section-id="work"
         className={`${styles.sectionWrapper} ${visibleSections.work ? styles.sectionVisible : ''}`}
       >
         <Work id="work" />
+        <div className={styles.pageCtaBanner}>
+          <Link to="/work" className={styles.ctaBtn} data-magnetic>
+            <span>EXPLORE FULL WORK ARCHIVE</span>
+            <span className={styles.ctaArrow}>→</span>
+          </Link>
+        </div>
       </div>
 
       <div className={styles.interSectionDivider} aria-hidden="true">
         <span className={styles.dividerGlowDot} />
       </div>
 
-      {/* 04 — SERVICES SECTION */}
+      {/* 04 — SERVICES PREVIEW */}
       <div
         data-section-id="services"
         className={`${styles.sectionWrapper} ${visibleSections.services ? styles.sectionVisible : ''}`}
       >
         <Services id="services" />
+        <div className={styles.pageCtaBanner}>
+          <Link to="/services" className={styles.ctaBtn} data-magnetic>
+            <span>VIEW ALL SERVICES & CAPABILITIES</span>
+            <span className={styles.ctaArrow}>→</span>
+          </Link>
+        </div>
       </div>
 
       {/* INTERACTIVE CINEMATIC MARQUEE */}

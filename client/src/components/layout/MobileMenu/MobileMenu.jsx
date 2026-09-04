@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
 import styles from './MobileMenu.module.css';
 
 export const MobileMenu = ({ isOpen, onClose }) => {
@@ -26,10 +27,11 @@ export const MobileMenu = ({ isOpen, onClose }) => {
   }, [isOpen, onClose]);
 
   const navItems = [
-    { label: 'ABOUT', href: '#about', index: '01' },
-    { label: 'WORK', href: '#work', index: '02' },
-    { label: 'SERVICES', href: '#services', index: '03' },
-    { label: 'CONTACT', href: '#contact', index: '04' },
+    { label: 'HOME', to: '/', index: '01' },
+    { label: 'ABOUT', to: '/about', index: '02' },
+    { label: 'WORK', to: '/work', index: '03' },
+    { label: 'SERVICES', to: '/services', index: '04' },
+    { label: 'CONTACT', to: '/contact', index: '05' },
   ];
 
   return (
@@ -43,14 +45,16 @@ export const MobileMenu = ({ isOpen, onClose }) => {
       <nav className={styles.menuList}>
         {navItems.map((item) => (
           <div key={item.label} className={styles.menuItem}>
-            <a
-              href={item.href}
-              className={styles.link}
+            <NavLink
+              to={item.to}
+              className={({ isActive }) =>
+                `${styles.link} ${isActive ? styles.activeLink : ''}`
+              }
               onClick={onClose}
             >
               <span className={styles.linkIndex}>/{item.index}</span>
               {item.label}
-            </a>
+            </NavLink>
           </div>
         ))}
       </nav>
@@ -69,3 +73,4 @@ export const MobileMenu = ({ isOpen, onClose }) => {
 };
 
 export default MobileMenu;
+

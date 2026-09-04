@@ -118,6 +118,16 @@
   width: 100%;
 }
 
+.navItemActive {
+  opacity: 1;
+  color: var(--accent-purple);
+}
+
+.navItemActive::after {
+  width: 100%;
+}
+
+
 /* Right Status Action */
 .statusAction {
   display: none;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link, NavLink } from 'react-router-dom';
 import MobileMenu from '../MobileMenu';
 import styles from './Header.module.css';
 
@@ -23,10 +24,10 @@ export const Header = () => {
   }, []);
 
   const navLinks = [
-    { label: 'ABOUT', href: '#about' },
-    { label: 'WORK', href: '#work' },
-    { label: 'SERVICES', href: '#services' },
-    { label: 'CONTACT', href: '#contact' },
+    { label: 'ABOUT', to: '/about' },
+    { label: 'WORK', to: '/work' },
+    { label: 'SERVICES', to: '/services' },
+    { label: 'CONTACT', to: '/contact' },
   ];
 
   return (
@@ -45,25 +46,31 @@ export const Header = () => {
       >
         <div className={styles.container}>
           {/* Brand Logo */}
-          <a href="#" className={styles.brand} aria-label="VENOM. Home">
+          <Link to="/" className={styles.brand} aria-label="VENOM. Home">
             <span>VENOM</span>
             <span className={styles.brandDot}>.</span>
-          </a>
+          </Link>
 
           {/* Center Navigation (Desktop) */}
           <nav className={styles.nav} aria-label="Main Navigation">
             {navLinks.map((link) => (
-              <a key={link.label} href={link.href} className={styles.navItem}>
+              <NavLink
+                key={link.label}
+                to={link.to}
+                className={({ isActive }) =>
+                  `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
+                }
+              >
                 {link.label}
-              </a>
+              </NavLink>
             ))}
           </nav>
 
           {/* Right Status Indicator */}
-          <a href="#contact" className={styles.statusAction}>
+          <Link to="/contact" className={styles.statusAction}>
             <span className={styles.dot} />
             <span>AVAILABLE FOR WORK</span>
-          </a>
+          </Link>
 
           {/* Hamburger Menu Toggle (Mobile) */}
           <button
@@ -89,3 +96,4 @@ export const Header = () => {
 };
 
 export default Header;
+

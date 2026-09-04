@@ -1,16 +1,28 @@
 import React from 'react';
-import Header from '@/components/layout/Header';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MainLayout from '@/components/layout/MainLayout';
 import Home from '@/pages/Home';
-import CustomCursor from '@/components/common/CustomCursor';
+import About from '@/pages/About';
+import Work from '@/pages/Work';
+import Services from '@/pages/Services';
+import Contact from '@/pages/Contact';
+import NotFound from '@/pages/NotFound';
 import './App.css';
 
 function App() {
   return (
-    <div className="app">
-      <CustomCursor />
-      <Header />
-      <Home />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Home />} />
+          <Route path="about" element={<About />} />
+          <Route path="work" element={<Work />} />
+          <Route path="services" element={<Services />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
