@@ -1,0 +1,604 @@
+/* =============================================================
+   VENOM — ABOUT SECTION STYLES
+   Theme: Dark Velvety Purple (#0D0714) + Pure White + Violet Glow
+   Matches the Services & Portfolio Visual Identity
+   ============================================================= */
+
+.aboutSection {
+  --about-bg: #0D0714;
+  --about-card-bg: rgba(18, 11, 28, 0.75);
+  --about-purple: #5C168A;
+  --about-purple-bright: #9D4EDD;
+  --about-purple-light: #C77DFF;
+  --about-purple-glow: rgba(157, 78, 221, 0.35);
+  --about-text-white: #FFFFFF;
+  --about-text-off: #F1EDF8;
+  --about-text-muted: #8E8799;
+
+  position: relative;
+  width: 100%;
+  background-color: var(--about-bg);
+  color: var(--about-text-white);
+  padding: clamp(80px, 12vh, 150px) clamp(20px, 4vw, 64px);
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 35mm Analog Film Grain Overlay */
+.grainOverlay {
+  position: absolute;
+  inset: -10%;
+  width: 120%;
+  height: 120%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+}
+
+/* -------------------------------------------------------------
+   Section Header Bar
+   ------------------------------------------------------------- */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 24px;
+  margin-bottom: clamp(36px, 6vh, 64px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--about-text-muted);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.slashAccent {
+  color: var(--about-purple-bright);
+  font-weight: 800;
+  font-size: 1.1em;
+}
+
+.headerIndex {
+  color: var(--about-text-white);
+  font-weight: 700;
+}
+
+.headerRight {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--about-text-muted);
+  opacity: 0.9;
+}
+
+/* -------------------------------------------------------------
+   Main 2-Column Grid
+   ------------------------------------------------------------- */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(40px, 6vw, 84px);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: minmax(360px, 440px) 1fr;
+    align-items: center;
+  }
+}
+
+/* -------------------------------------------------------------
+   Left Column: Visual / Photo Stage
+   ------------------------------------------------------------- */
+.visualCol {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.photoWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  padding-left: 14px;
+}
+
+/* Signature Offset Dark Purple Accent Block */
+.accentBackdropBlock {
+  position: absolute;
+  top: 24px;
+  bottom: 24px;
+  left: 0;
+  width: 32px;
+  background: var(--about-purple);
+  border-radius: 4px;
+  z-index: 1;
+  box-shadow: 0 10px 28px var(--about-purple-glow);
+}
+
+.photoCard {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: var(--about-card-bg);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 24px 48px -18px rgba(0, 0, 0, 0.9),
+    0 0 24px var(--about-purple-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.photoCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(157, 78, 221, 0.45);
+  box-shadow:
+    0 32px 56px -16px rgba(0, 0, 0, 0.95),
+    0 0 32px var(--about-purple-glow);
+}
+
+.creatorImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%) contrast(106%);
+  transition: filter 0.4s ease, transform 0.4s ease;
+}
+
+.photoCard:hover .creatorImage {
+  transform: scale(1.02);
+  filter: grayscale(85%) contrast(108%);
+}
+
+/* Viewfinder Corner Crosshairs */
+.viewfinderCorner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.cornerTL {
+  top: 16px;
+  left: 16px;
+  border-top: 2px solid var(--about-purple-bright);
+  border-left: 2px solid var(--about-purple-bright);
+}
+
+.cornerTR {
+  top: 16px;
+  right: 16px;
+  border-top: 2px solid var(--about-purple-bright);
+  border-right: 2px solid var(--about-purple-bright);
+}
+
+.cornerBL {
+  bottom: 16px;
+  left: 16px;
+  border-bottom: 2px solid var(--about-purple-bright);
+  border-left: 2px solid var(--about-purple-bright);
+}
+
+.cornerBR {
+  bottom: 16px;
+  right: 16px;
+  border-bottom: 2px solid var(--about-purple-bright);
+  border-right: 2px solid var(--about-purple-bright);
+}
+
+/* Dedicated Photo Placeholder */
+.photoPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+  background: 
+    radial-gradient(circle at 50% 40%, rgba(92, 22, 138, 0.3) 0%, transparent 65%),
+    linear-gradient(180deg, #180B28 0%, #0D0714 100%);
+  text-align: center;
+  position: relative;
+}
+
+.viewfinderReticle {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1px dashed rgba(157, 78, 221, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(92, 22, 138, 0.15);
+  box-shadow: 0 4px 16px var(--about-purple-glow);
+  transition: transform 0.3s ease;
+}
+
+.photoCard:hover .viewfinderReticle {
+  transform: scale(1.06);
+}
+
+.cameraIcon {
+  width: 34px;
+  height: 34px;
+  color: var(--about-purple-bright);
+}
+
+.viewfinderPlus {
+  position: absolute;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: var(--about-purple-bright);
+  top: -8px;
+  font-weight: 700;
+}
+
+.placeholderMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.placeholderTitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--about-text-white);
+}
+
+.placeholderDesc {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+  color: var(--about-text-muted);
+}
+
+.filmMetadata {
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: var(--about-purple-bright);
+  opacity: 0.85;
+}
+
+/* -------------------------------------------------------------
+   Right Column: Content, Manifesto & Narrative
+   ------------------------------------------------------------- */
+.contentCol {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 3.5vh, 32px);
+}
+
+/* Greeting & Name Header */
+.introHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.greetingText {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--about-text-muted);
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.creatorName {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(2.4rem, 4.5vw, 4.2rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  line-height: 1.05;
+  color: var(--about-text-white);
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.1);
+}
+
+/* Solid Dark Purple Rectangular Block beside name */
+.nameAccentBlock {
+  display: inline-block;
+  width: clamp(56px, 8vw, 92px);
+  height: clamp(26px, 3.2vw, 36px);
+  background: var(--about-purple);
+  border-radius: 3px;
+  box-shadow: 0 4px 14px var(--about-purple-glow);
+  transform: translateY(2px);
+}
+
+.roleIdentity {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.84rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--about-text-muted);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.venomHighlight {
+  color: var(--about-purple-bright);
+  font-weight: 700;
+  text-shadow: 0 0 10px var(--about-purple-glow);
+}
+
+/* -------------------------------------------------------------
+   Manifesto Headline Card
+   ------------------------------------------------------------- */
+.manifestoCard {
+  background: linear-gradient(
+    135deg,
+    rgba(28, 16, 44, 0.85) 0%,
+    rgba(18, 11, 28, 0.95) 100%
+  );
+  border-left: 4px solid var(--about-purple-bright);
+  padding: clamp(16px, 2.5vw, 24px) clamp(18px, 2.8vw, 28px);
+  border-radius: 0 8px 8px 0;
+  box-shadow: 
+    0 16px 36px -12px rgba(0, 0, 0, 0.85),
+    0 0 20px var(--about-purple-glow);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.manifestoLine1 {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1.2rem, 2.2vw, 1.85rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: var(--about-text-white);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.manifestoLine2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1.3rem, 2.4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: var(--about-purple-bright);
+  text-transform: uppercase;
+  margin-top: 6px;
+  text-shadow: 0 0 20px var(--about-purple-glow);
+}
+
+/* -------------------------------------------------------------
+   Narrative Story & Philosophy
+   ------------------------------------------------------------- */
+.storyContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(0.94rem, 1.05vw, 1.02rem);
+  line-height: 1.75;
+  color: #C8C3D3;
+}
+
+.leadParagraph {
+  color: #E2DCED;
+}
+
+.textEmphasis {
+  font-weight: 700;
+  color: var(--about-purple-bright);
+}
+
+.textUnderline {
+  font-weight: 600;
+  border-bottom: 2px solid var(--about-purple-bright);
+  color: #FFFFFF;
+  padding-bottom: 1px;
+}
+
+.bodyParagraph {
+  color: #B5AFC2;
+}
+
+/* Creed Callout Box */
+.creedBox {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  background: rgba(92, 22, 138, 0.12);
+  border-radius: 6px;
+  padding: 18px 22px;
+  border: 1px solid rgba(157, 78, 221, 0.28);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.creedAccentLine {
+  width: 3px;
+  background: var(--about-purple-bright);
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px var(--about-purple-glow);
+}
+
+.creedContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.creedTag {
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--about-purple-bright);
+  font-weight: 700;
+}
+
+.creedQuote {
+  margin: 0;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--about-text-off);
+  line-height: 1.65;
+}
+
+/* -------------------------------------------------------------
+   Core Disciplines Chips
+   ------------------------------------------------------------- */
+.disciplinesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.disciplinesTitle {
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--about-text-muted);
+}
+
+.disciplineChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.chip {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #E2DCED;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  transition: all 0.25s ease;
+}
+
+.chip:hover {
+  background: rgba(157, 78, 221, 0.2);
+  border-color: var(--about-purple-bright);
+  color: #FFFFFF;
+  box-shadow: 0 0 12px var(--about-purple-glow);
+  transform: translateY(-1px);
+}
+
+/* -------------------------------------------------------------
+   Bottom Stats Row (Reference Match with Vertical Lines)
+   ------------------------------------------------------------- */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 3vw, 36px);
+  padding-top: 24px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.4vw, 18px);
+}
+
+/* Vertical Accent Divider Line */
+.statDivider {
+  width: 3px;
+  height: clamp(38px, 4.5vw, 52px);
+  background: var(--about-purple-bright);
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px var(--about-purple-glow);
+}
+
+.statInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.statNumber {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(1.8rem, 2.6vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--about-text-white);
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 16px rgba(157, 78, 221, 0.25);
+}
+
+.statLabel {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(0.72rem, 0.95vw, 0.84rem);
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--about-text-muted);
+  text-transform: capitalize;
+  margin-top: 4px;
+}
+
+/* -------------------------------------------------------------
+   Responsive Breakpoints
+   ------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .statsRow {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .statItem {
+    gap: 16px;
+  }
+
+  .accentBackdropBlock {
+    width: 24px;
+    left: -4px;
+  }
+
+  .photoWrapper {
+    max-width: 340px;
+    padding-left: 10px;
+  }
+}

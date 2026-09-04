@@ -1,0 +1,80 @@
+/* =============================================================
+   VENOM — KINETIC HORIZONTAL MARQUEE
+   ============================================================= */
+
+.marqueeSection {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background-color: #07040A;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 18px 0;
+  cursor: default;
+  user-select: none;
+  z-index: 4;
+}
+
+.marqueeTrack {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  animation: crawlMarquee 28s linear infinite;
+  will-change: transform;
+}
+
+.trackSlow {
+  animation-duration: 65s;
+}
+
+@keyframes crawlMarquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-33.3333%, 0, 0);
+  }
+}
+
+.marqueeItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 28px;
+  white-space: nowrap;
+}
+
+.itemText {
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.marqueeSection:hover .itemText {
+  color: #FFFFFF;
+  text-shadow: 0 0 14px rgba(157, 78, 221, 0.4);
+}
+
+.starSymbol {
+  color: #9D4EDD;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  transition: all 0.3s ease;
+}
+
+.marqueeSection:hover .starSymbol {
+  color: #C77DFF;
+  opacity: 1;
+  text-shadow: 0 0 10px #9D4EDD;
+  transform: scale(1.2);
+}
+
+/* Accessibility: reduce motion if preferred */
+@media (prefers-reduced-motion: reduce) {
+  .marqueeTrack {
+    animation-duration: 120s;
+  }
+}

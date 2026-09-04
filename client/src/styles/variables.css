@@ -1,0 +1,46 @@
+:root {
+  /* Brand Palettes */
+  --bg-dark: #08080a;
+  --bg-dark-glass: rgba(10, 10, 14, 0.82);
+  --bg-poster: #eae8e3;
+  --bg-poster-tint: #f3f1ec;
+
+  /* Typography Colors */
+  --text-dark: #0e0e12;
+  --text-muted-dark: #7a7875;
+  --text-white: #f8fafc;
+  --text-light-muted: #9ca3af;
+
+  /* Accent Tones */
+  --accent-purple: #5c168a;
+  --accent-purple-bright: #7922b5;
+  --accent-purple-glow: rgba(92, 22, 138, 0.45);
+  --accent-slash: #5c168a;
+
+  /* Typography Gradient (VENOM Dark Purple Poster Gradient) */
+  --poster-gradient: linear-gradient(
+    180deg,
+    #0d0b12 0%,
+    #180e24 30%,
+    #2d1045 58%,
+    #461266 82%,
+    #5c168a 100%
+  );
+
+  /* Font Families */
+  --font-display: 'Bebas Neue', 'Anton', -apple-system, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Space Grotesk', monospace;
+
+  /* Elevation & Borders */
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-dark-subtle: rgba(0, 0, 0, 0.08);
+  --navbar-height: 72px;
+
+  /* Transitions */
+  --ease-cinematic: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 250ms;
+  --duration-normal: 400ms;
+  --duration-slow: 700ms;
+}

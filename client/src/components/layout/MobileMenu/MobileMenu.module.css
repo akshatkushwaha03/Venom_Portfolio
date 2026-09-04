@@ -1,0 +1,117 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 10, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 100px 32px 48px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.overlayOpen {
+  opacity: 1;
+  visibility: visible;
+}
+
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.menuItem {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.overlayOpen .menuItem {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.overlayOpen .menuItem:nth-child(1) { transition-delay: 0.1s; }
+.overlayOpen .menuItem:nth-child(2) { transition-delay: 0.16s; }
+.overlayOpen .menuItem:nth-child(3) { transition-delay: 0.22s; }
+.overlayOpen .menuItem:nth-child(4) { transition-delay: 0.28s; }
+.overlayOpen .menuItem:nth-child(5) { transition-delay: 0.34s; }
+
+.link {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 9vw, 4rem);
+  letter-spacing: 0.04em;
+  color: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.linkIndex {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent-purple);
+  letter-spacing: 0.1em;
+  font-weight: 500;
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--accent-purple-bright);
+  transform: translateX(8px);
+}
+
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.statusContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #e2e8f0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-purple);
+  box-shadow: 0 0 10px var(--accent-purple), 0 0 20px var(--accent-purple-glow);
+  animation: pulseDot 2.2s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.7;
+  }
+}
+
+.metaText {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-light-muted);
+  letter-spacing: 0.08em;
+}

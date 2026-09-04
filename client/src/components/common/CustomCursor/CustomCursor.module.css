@@ -1,0 +1,113 @@
+/* =============================================================
+   VENOM — ADAPTIVE CINEMATIC CURSOR
+   ============================================================= */
+
+.cursorWrapper {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99999;
+  overflow: hidden;
+}
+
+/* Center Precision Dot */
+.cursorDot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  background-color: #C77DFF;
+  border-radius: 50%;
+  pointer-events: none;
+  margin-top: -2.5px;
+  margin-left: -2.5px;
+  box-shadow: 0 0 8px #9D4EDD, 0 0 16px rgba(157, 78, 221, 0.6);
+  transition: opacity 0.2s ease, transform 0.05s linear;
+  will-change: transform;
+}
+
+/* Trailing Outer Ring */
+.cursorRing {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid rgba(157, 78, 221, 0.45);
+  border-radius: 50%;
+  pointer-events: none;
+  margin-top: -14px;
+  margin-left: -14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(157, 78, 221, 0.15);
+  transition: 
+    width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    margin 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    border-radius 0.25s ease,
+    opacity 0.25s ease,
+    box-shadow 0.25s ease;
+  will-change: transform, width, height;
+}
+
+/* Over Clickable Elements (Buttons / Links) */
+.cursorRing.pointer {
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+  margin-left: -24px;
+  background-color: rgba(157, 78, 221, 0.12);
+  border-color: #9D4EDD;
+  box-shadow: 0 0 20px rgba(157, 78, 221, 0.35);
+}
+
+/* Over Visual & Service Cards */
+.cursorRing.card {
+  width: 66px;
+  height: 66px;
+  margin-top: -33px;
+  margin-left: -33px;
+  background-color: rgba(18, 10, 30, 0.7);
+  border-color: #C77DFF;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 0 24px rgba(157, 78, 221, 0.4);
+}
+
+.cursorBadge {
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  animation: fadeInBadge 0.2s ease forwards;
+}
+
+@keyframes fadeInBadge {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Over Large Headings */
+.cursorRing.text {
+  width: 3px;
+  height: 28px;
+  margin-top: -14px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background-color: #9D4EDD;
+  border: none;
+  box-shadow: 0 0 10px #9D4EDD;
+}
+
+/* Off Screen Hidden */
+.cursorDot.hidden,
+.cursorRing.hidden {
+  opacity: 0;
+}

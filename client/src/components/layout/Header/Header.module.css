@@ -1,0 +1,219 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--navbar-height);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  transition: background-color var(--duration-normal) var(--ease-smooth),
+    backdrop-filter var(--duration-normal) var(--ease-smooth),
+    border-color var(--duration-normal) var(--ease-smooth),
+    color var(--duration-normal) var(--ease-smooth),
+    box-shadow var(--duration-normal) var(--ease-smooth);
+  background-color: transparent;
+  border-bottom: 1px solid transparent;
+  color: var(--text-dark);
+}
+
+/* Scrolled State */
+.headerScrolled {
+  background-color: var(--bg-dark-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-glass);
+  color: var(--text-white);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Mobile Menu Open State */
+.headerMenuOpen {
+  color: var(--text-white);
+  background-color: transparent;
+}
+
+.container {
+  width: 100%;
+  max-width: 1540px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 48px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Brand Logo */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  letter-spacing: 0.08em;
+  color: inherit;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.brand:hover {
+  opacity: 0.85;
+}
+
+.brandDot {
+  color: var(--accent-purple);
+  font-size: 1.3em;
+  line-height: 0;
+  margin-left: 1px;
+  display: inline-block;
+  text-shadow: 0 0 12px var(--accent-purple-glow);
+}
+
+/* Desktop Navigation List */
+.nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(24px, 4vw, 44px);
+  }
+}
+
+.navItem {
+  position: relative;
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: inherit;
+  opacity: 0.8;
+  padding: 8px 0;
+  transition: opacity var(--duration-fast) ease,
+    transform var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+
+.navItem::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--accent-purple);
+  box-shadow: 0 0 8px var(--accent-purple-glow);
+  transform: translateX(-50%);
+  transition: width 350ms var(--ease-cinematic);
+}
+
+.navItem:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.navItem:hover::after {
+  width: 100%;
+}
+
+/* Right Status Action */
+.statusAction {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .statusAction {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-sans);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: inherit;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: all var(--duration-fast) ease;
+  }
+
+  .headerScrolled .statusAction {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .statusAction:hover {
+    background: rgba(92, 22, 138, 0.12);
+    border-color: rgba(92, 22, 138, 0.35);
+    transform: translateY(-1px);
+  }
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-purple);
+  box-shadow: 0 0 8px var(--accent-purple), 0 0 16px var(--accent-purple-glow);
+  display: inline-block;
+  animation: pulseDot 2.4s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.35);
+    opacity: 0.65;
+  }
+}
+
+/* Mobile Hamburger Button */
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  gap: 6px;
+  padding: 8px;
+  color: inherit;
+  z-index: 1001;
+  border-radius: 8px;
+  transition: background-color var(--duration-fast) ease;
+}
+
+@media (min-width: 768px) {
+  .hamburger {
+    display: none;
+  }
+}
+
+.hamburgerLine {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 2px;
+  transition: transform 0.35s var(--ease-cinematic),
+    opacity 0.25s ease;
+  transform-origin: center;
+}
+
+.hamburgerOpen .hamburgerLine:first-child {
+  transform: translateY(4px) rotate(45deg);
+}
+
+.hamburgerOpen .hamburgerLine:last-child {
+  transform: translateY(-4px) rotate(-45deg);
+}
