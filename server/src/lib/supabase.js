@@ -169,6 +169,61 @@ async function uploadVideo(fileBuffer, originalName = 'video.mp4', mimeType = 'v
 }
 
 /**
+ * Upload an image file to the Supabase bucket.
+ * @param {Buffer} fileBuffer - The image file buffer
+ * @param {string} originalName - Original filename
+ * @param {string} mimeType - e.g. 'image/jpeg', 'image/png'
+ * @returns {Promise<string>} The storage path inside the bucket
+ */
+async function uploadImage(fileBuffer, originalName = 'image.png', mimeType = 'image/png') {
+  if (!isConfigured()) {
+    throw new Error('Supabase Storage is not configured. Please set SUPABASE_SERVICE_ROLE_KEY in server/.env');
+  }
+
+  const ext = path.extname(originalName) || '.png';
+  const uniqueId = crypto.randomUUID();
+  const sanitizedBase = path.basename(originalName, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
+  const filePath = `images/${Date.now()}-${uniqueId.substring(0, 8)}-${sanitizedBase}${ext}`;
+
+  await ensureBucket();
+
+  if (supabaseClient) {
+    const { error } = await supabaseClient.storage
+      .from(BUCKET_NAME)
+      .upload(filePath, fileBuffer, {
+        contentType: mimeType,
+        upsert: true,
+      });
+
+    if (error) {
+      throw new Error(`Failed to upload image to Supabase Storage: ${error.message}`);
+    }
+
+    return filePath;
+  }
+
+  const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${filePath}`;
+  const response = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      apiKey: SUPABASE_KEY,
+      'Content-Type': mimeType,
+      'x-upsert': 'true',
+    },
+    body: fileBuffer,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to upload image via REST: ${errorText}`);
+  }
+
+  return filePath;
+}
+
+
+/**
  * Generate a time-limited signed URL for private video playback.
  * Since the bucket is private, this allows the browser to stream the video securely.
  * @param {string} videoPath - Storage path inside the bucket (e.g. 'videos/123-intro.mp4')
@@ -262,6 +317,7 @@ module.exports = {
   isConfigured,
   ensureBucket,
   uploadVideo,
+  uploadImage,
   getSignedVideoUrl,
   deleteVideo,
   BUCKET_NAME,
