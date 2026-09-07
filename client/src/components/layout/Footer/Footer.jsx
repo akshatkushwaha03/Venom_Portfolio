@@ -41,17 +41,22 @@ export const Footer = () => {
           <div className={styles.linksCol}>
             <h4 className={styles.colTitle}>CONNECT</h4>
             <div className={styles.socialLinks}>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
+              <a href="https://www.instagram.com/iam__v3nom/" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
                 INSTAGRAM ↗
               </a>
-              <a href="https://vimeo.com" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
-                VIMEO ↗
-              </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
+              <a href="https://www.youtube.com/@Venom-The-Jod-" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
                 YOUTUBE ↗
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
+              <a href="https://www.linkedin.com/in/akshat-kushwaha-08a448274/" target="_blank" rel="noopener noreferrer" className={styles.socialLink}>
                 LINKEDIN ↗
+              </a>
+              <a
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=venom.creative.stu@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.socialLink}
+              >
+                MAIL ↗
               </a>
             </div>
           </div>

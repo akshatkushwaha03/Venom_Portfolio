@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import aboutPosterImg from '@/assets/images/about_poster.png';
 import styles from './About.module.css';
@@ -135,6 +135,20 @@ export const About = ({ imageSrc = aboutPosterImg, id = 'about', actionLink = nu
                 </div>
               )}
             </div>
+
+            {/* Core Disciplines below photo - ONLY on outside home page */}
+            {isPreview && (
+              <div className={styles.visualDisciplines}>
+                <span className={styles.disciplinesTitle}>CORE DISCIPLINES //</span>
+                <div className={styles.disciplineChips}>
+                  {disciplines.map((item) => (
+                    <span key={item} className={styles.chip} data-magnetic>
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Column: Narrative, Manifesto & Credentials */}
@@ -144,8 +158,36 @@ export const About = ({ imageSrc = aboutPosterImg, id = 'about', actionLink = nu
               <span className={styles.greetingText}>Hi, I am</span>
               <div className={styles.nameRow}>
                 <h2 className={styles.creatorName} data-kinetic>AKSHAT</h2>
-                {/* Solid Dark Purple Rectangular Block beside name (from reference) */}
-                <span className={styles.nameAccentBlock} aria-hidden="true" />
+                {/* Venom Eye Logo */}
+                <div
+                  className={styles.venomEyeLogo}
+                  title="VENOM"
+                  aria-label="VENOM Eye Emblem"
+                  data-magnetic
+                >
+                  <svg
+                    viewBox="0 0 100 45"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={styles.venomEyeSvg}
+                  >
+                    <defs>
+                      <linearGradient id="venomEyeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#ffffff" />
+                        <stop offset="65%" stopColor="#f0fdfa" />
+                        <stop offset="100%" stopColor="#5eead4" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M45 33 C42 36 36 40 26 42 C16 41 8 32 4 20 C2 14 2 8 4 4 C7 9 12 14 16 15 C19 12 21 8 24 10 C23 14 24 17 28 18 C31 15 33 11 36 14 C35 18 36 21 38 24 C41 27 44 30 45 33 Z"
+                      fill="url(#venomEyeGlow)"
+                    />
+                    <path
+                      d="M55 33 C58 36 64 40 74 42 C84 41 92 32 96 20 C98 14 98 8 96 4 C93 9 88 14 84 15 C81 12 79 8 76 10 C77 14 76 17 72 18 C69 15 67 11 64 14 C65 18 64 21 62 24 C59 27 56 30 55 33 Z"
+                      fill="url(#venomEyeGlow)"
+                    />
+                  </svg>
+                </div>
               </div>
               <p className={styles.roleIdentity}>
                 Visual Storyteller, Cinematographer & Editor behind{' '}
@@ -158,6 +200,91 @@ export const About = ({ imageSrc = aboutPosterImg, id = 'about', actionLink = nu
               <p className={styles.manifestoLine1}>I DON’T JUST CREATE CONTENT.</p>
               <p className={styles.manifestoLine2}>I CREATE STORIES PEOPLE REMEMBER.</p>
             </div>
+
+            {/* Why "Venom"? — Identity Origin Story */}
+            {isPreview ? (
+              <div className={styles.originTeaserCard}>
+                <div className={styles.originTeaserInfo}>
+                  <div className={styles.originTeaserTagRow}>
+                    <span className={styles.originTag}>// ORIGIN STORY</span>
+                    <span className={styles.originTeaserPill}>THE IDENTITY</span>
+                  </div>
+                  <h3 className={styles.originTeaserTitle}>WHY “VENOM”?</h3>
+                  <p className={styles.originTeaserDesc}>
+                    From a PUBG gaming tag to cinematic storytelling — discover how the identity was born.
+                  </p>
+                </div>
+                <div className={styles.originTeaserActions}>
+                  <Link
+                    to="/about"
+                    className={styles.originTeaserBtn}
+                    data-magnetic
+                    aria-label="Read full origin story inside About page"
+                  >
+                    <span>READ STORY</span>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M7 17L17 7" />
+                      <path d="M7 7h10v10" />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.originStoryBox}>
+                <div className={styles.originHeader}>
+                  <span className={styles.originTag}>// ORIGIN STORY</span>
+                  <h3 className={styles.originTitle}>WHY “VENOM”?</h3>
+                </div>
+
+                <div className={styles.originStoryBody}>
+                  <p className={styles.originLead}>
+                    Honestly, I never planned for “VENOM” to become my identity.
+                  </p>
+
+                  <p className={styles.originParagraph}>
+                    It all started with a game — <strong className={styles.highlightWhite}>PUBG</strong>. I needed a name, and somehow, I chose <em>VENOM</em>.
+                  </p>
+
+                  <p className={styles.originParagraph}>
+                    Then I started making gaming content and uploading it on Instagram. Since “VENOM” was already my name in the game, I carried it over to Instagram too.
+                  </p>
+
+                  <p className={styles.originMutedLine}>
+                    At that time, I had no idea where it would take me.
+                  </p>
+
+                  <p className={styles.originParagraph}>
+                    Slowly, I started exploring. Gaming turned into editing. Editing turned into cinematic videos. Then photography, shoots, creative experiments… and so much more.
+                  </p>
+
+                  <p className={styles.originParagraph}>
+                    I kept changing my niche, trying new things, learning, failing, improving and creating.
+                  </p>
+
+                  <p className={styles.originConstantLine}>
+                    But one thing never changed — <span className={styles.tealAccent}>THE NAME</span>.
+                  </p>
+
+                  <p className={styles.originParagraph}>
+                    What started as a random username in a game slowly became a part of my journey, my work, and eventually, a part of who I am.
+                  </p>
+
+                  <div className={styles.identityCard}>
+                    <p className={styles.identityLine1}>I didn’t choose “VENOM” knowing it would become my identity.</p>
+                    <p className={styles.identityLine2}>It became my identity because I grew with it.</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Story & Philosophy Paragraphs */}
             <div className={styles.storyContent}>
@@ -187,17 +314,19 @@ export const About = ({ imageSrc = aboutPosterImg, id = 'about', actionLink = nu
               </div>
             </div>
 
-            {/* Creative Disciplines Tags */}
-            <div className={styles.disciplinesSection}>
-              <span className={styles.disciplinesTitle}>CORE DISCIPLINES //</span>
-              <div className={styles.disciplineChips}>
-                {disciplines.map((item) => (
-                  <span key={item} className={styles.chip} data-magnetic>
-                    {item}
-                  </span>
-                ))}
+            {/* Creative Disciplines Tags - inside full About page */}
+            {!isPreview && (
+              <div className={styles.disciplinesSection}>
+                <span className={styles.disciplinesTitle}>CORE DISCIPLINES //</span>
+                <div className={styles.disciplineChips}>
+                  {disciplines.map((item) => (
+                    <span key={item} className={styles.chip} data-magnetic>
+                      {item}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Preview Prompt to Explore Full Story */}
             {isPreview && (

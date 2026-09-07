@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styles from './Services.module.css';
 
 export const Services = ({ id = 'services', actionLink = null, isPreview = false }) => {
@@ -108,32 +108,7 @@ export const Services = ({ id = 'services', actionLink = null, isPreview = false
               <span className={styles.dotDivider}>•</span>
               <span className={styles.categoryCount}>05 DISCIPLINES</span>
             </div>
-            {isPreview ? (
-              actionLink && (
-                <Link
-                  to={actionLink}
-                  className={styles.sectionIconBtn}
-                  title="View All Services"
-                  aria-label="View All Services"
-                  data-magnetic
-                >
-                  <span>ALL SERVICES</span>
-                  <svg
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M7 17L17 7" />
-                    <path d="M7 7h10v10" />
-                  </svg>
-                </Link>
-              )
-            ) : (
+            {!isPreview && (
               <button
                 type="button"
                 className={styles.backBtn}

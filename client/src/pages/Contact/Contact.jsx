@@ -263,9 +263,9 @@ export const Contact = ({ id = 'contact' }) => {
               {status.submitted ? (
                 <div className={styles.successBox}>
                   <div className={styles.successIcon}>✓</div>
-                  <h4 className={styles.successHeading}>TRANSMISSION RECEIVED</h4>
+                  <h4 className={styles.successHeading}>MESSAGE RECEIVED</h4>
                   <p className={styles.successText}>
-                    Thank you for reaching out. Your project inquiry has been dispatched to Akshat.
+                    Thank you for reaching out. Your message has been sent to Akshat.
                     Expect a response within 24 hours.
                   </p>
                   <button
@@ -273,7 +273,7 @@ export const Contact = ({ id = 'contact' }) => {
                     onClick={() => setStatus((prev) => ({ ...prev, submitted: false }))}
                     className={styles.resetBtn}
                   >
-                    SEND ANOTHER INQUIRY
+                    SEND ANOTHER MESSAGE
                   </button>
                 </div>
               ) : (
@@ -363,7 +363,7 @@ export const Contact = ({ id = 'contact' }) => {
                     disabled={status.submitting}
                     className={styles.submitButton}
                   >
-                    <span>{status.submitting ? 'DISPATCHING TRANSMISSION...' : 'SEND TRANSMISSION'}</span>
+                    <span>{status.submitting ? 'SENDING MESSAGE...' : 'SEND MESSAGE'}</span>
                     <span className={styles.submitArrow}>→</span>
                   </button>
                 </form>

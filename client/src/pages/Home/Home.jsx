@@ -98,7 +98,7 @@ export const Home = () => {
         data-section-id="services"
         className={`${styles.sectionWrapper} ${visibleSections.services ? styles.sectionVisible : ''}`}
       >
-        <Services id="services" actionLink="/services" isPreview={true} />
+        <Services id="services" isPreview={true} />
       </div>
 
       {/* INTERACTIVE CINEMATIC MARQUEE */}
