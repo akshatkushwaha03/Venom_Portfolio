@@ -21,12 +21,12 @@ async function uploadVideoFile(req, res) {
       req.file.mimetype
     );
 
-    const signedUrl = await supabaseService.getSignedVideoUrl(videoPath, 3600 * 24);
+    const publicUrl = supabaseService.getPublicVideoUrl(videoPath);
 
     return res.status(200).json({
       success: true,
       message: 'Video uploaded successfully',
-      url: signedUrl || videoPath,
+      url: publicUrl || videoPath,
       filePath: videoPath,
     });
   } catch (error) {
@@ -40,7 +40,7 @@ async function uploadVideoFile(req, res) {
 
 /**
  * POST /api/upload/image
- * Upload thumbnail or poster image to Supabase Storage and return access URL
+ * Upload thumbnail or poster image to Supabase Storage and return active public access URL
  */
 async function uploadImageFile(req, res) {
   try {
@@ -59,12 +59,12 @@ async function uploadImageFile(req, res) {
       req.file.mimetype
     );
 
-    const signedUrl = await supabaseService.getSignedVideoUrl(imagePath, 3600 * 24 * 365);
+    const publicUrl = supabaseService.getPublicVideoUrl(imagePath);
 
     return res.status(200).json({
       success: true,
       message: 'Image uploaded successfully',
-      url: signedUrl || imagePath,
+      url: publicUrl || imagePath,
       filePath: imagePath,
     });
   } catch (error) {

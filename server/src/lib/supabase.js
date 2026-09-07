@@ -1,6 +1,6 @@
 /**
  * Supabase Storage Integration Service
- * Manages private bucket provisioning, video uploads, and signed URL generation.
+ * Manages public bucket provisioning, video/image uploads, and active non-expiring public URLs.
  */
 
 const path = require('path');
@@ -37,12 +37,12 @@ function isConfigured() {
 }
 
 /**
- * Ensure the private storage bucket exists on Supabase.
- * The bucket is strictly private (public: false) as required.
+ * Ensure the public storage bucket exists on Supabase.
+ * The bucket is explicitly public (public: true) so URLs never expire.
  */
 async function ensureBucket() {
   if (!isConfigured()) {
-    console.warn('[SUPABASE STORAGE] SUPABASE_SERVICE_ROLE_KEY is not set. Private bucket operations will require this key.');
+    console.warn('[SUPABASE STORAGE] SUPABASE_SERVICE_ROLE_KEY is not set. Storage operations will require this key.');
     return false;
   }
 
@@ -53,15 +53,15 @@ async function ensureBucket() {
         const bucketExists = buckets.some((b) => b.name === BUCKET_NAME);
         if (!bucketExists) {
           const { error: createError } = await supabaseClient.storage.createBucket(BUCKET_NAME, {
-            public: false, // Bucket is explicitly private
+            public: true, // Bucket is public for non-expiring URLs
             fileSizeLimit: 1048576000, // 1GB
-            allowedMimeTypes: ['video/*'],
+            allowedMimeTypes: ['video/*', 'image/*'],
           });
           if (createError) {
-            console.error(`[SUPABASE STORAGE] Error creating private bucket '${BUCKET_NAME}':`, createError.message);
+            console.error(`[SUPABASE STORAGE] Error creating public bucket '${BUCKET_NAME}':`, createError.message);
             return false;
           }
-          console.log(`[SUPABASE STORAGE] Created private storage bucket: '${BUCKET_NAME}'`);
+          console.log(`[SUPABASE STORAGE] Created public storage bucket: '${BUCKET_NAME}'`);
         }
         return true;
       }
@@ -89,9 +89,9 @@ async function ensureBucket() {
           body: JSON.stringify({
             id: BUCKET_NAME,
             name: BUCKET_NAME,
-            public: false, // Explicitly private
+            public: true, // Explicitly public
             file_size_limit: 1048576000,
-            allowed_mime_types: ['video/*'],
+            allowed_mime_types: ['video/*', 'image/*'],
           }),
         });
 
@@ -100,7 +100,7 @@ async function ensureBucket() {
           console.error(`[SUPABASE STORAGE] REST failed to create bucket:`, errText);
           return false;
         }
-        console.log(`[SUPABASE STORAGE] Created private storage bucket via REST: '${BUCKET_NAME}'`);
+        console.log(`[SUPABASE STORAGE] Created public storage bucket via REST: '${BUCKET_NAME}'`);
       }
       return true;
     }
@@ -112,7 +112,7 @@ async function ensureBucket() {
 }
 
 /**
- * Upload a video file to the private Supabase bucket.
+ * Upload a video file to the public Supabase bucket.
  * @param {Buffer} fileBuffer - The video file buffer
  * @param {string} originalName - Original filename
  * @param {string} mimeType - e.g. 'video/mp4'
@@ -169,7 +169,7 @@ async function uploadVideo(fileBuffer, originalName = 'video.mp4', mimeType = 'v
 }
 
 /**
- * Upload an image file to the Supabase bucket.
+ * Upload an image file to the public Supabase bucket.
  * @param {Buffer} fileBuffer - The image file buffer
  * @param {string} originalName - Original filename
  * @param {string} mimeType - e.g. 'image/jpeg', 'image/png'
@@ -222,69 +222,44 @@ async function uploadImage(fileBuffer, originalName = 'image.png', mimeType = 'i
   return filePath;
 }
 
-
 /**
- * Generate a time-limited signed URL for private video playback.
- * Since the bucket is private, this allows the browser to stream the video securely.
- * @param {string} videoPath - Storage path inside the bucket (e.g. 'videos/123-intro.mp4')
- * @param {number} expiresIn - Expiration in seconds (default: 3600 = 1 hour)
- * @returns {Promise<string>} The signed URL
+ * Get permanent, non-expiring public URL for a file in the public Supabase bucket.
+ * @param {string} filePath - Storage path inside the bucket (e.g. 'videos/123-intro.mp4')
+ * @returns {string|null} The active, non-expiring public URL
  */
-async function getSignedVideoUrl(videoPath, expiresIn = 3600) {
-  if (!videoPath) return null;
+function getPublicVideoUrl(filePath) {
+  if (!filePath) return null;
 
   // If already a full http/https URL (e.g. external link), return as-is
-  if (videoPath.startsWith('http://') || videoPath.startsWith('https://')) {
-    return videoPath;
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+    return filePath;
   }
 
-  if (!isConfigured()) {
-    // Return a relative backend streaming proxy route if direct Supabase signed URL cannot be computed
-    return `/api/projects/stream?path=${encodeURIComponent(videoPath)}`;
-  }
+  if (supabaseClient) {
+    const { data } = supabaseClient.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(filePath);
 
-  try {
-    if (supabaseClient) {
-      const { data, error } = await supabaseClient.storage
-        .from(BUCKET_NAME)
-        .createSignedUrl(videoPath, expiresIn);
-
-      if (error) {
-        console.warn(`[SUPABASE STORAGE] Error creating signed URL for ${videoPath}:`, error.message);
-        return `/api/projects/stream?path=${encodeURIComponent(videoPath)}`;
-      }
-
-      return data.signedUrl;
+    if (data && data.publicUrl) {
+      return data.publicUrl;
     }
-
-    // Direct REST API Fallback for signed URL
-    const signUrl = `${SUPABASE_URL}/storage/v1/object/sign/${BUCKET_NAME}/${videoPath}`;
-    const response = await fetch(signUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        apiKey: SUPABASE_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ expiresIn }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      // Supabase returns relative signedURL: /object/sign/bucket/...
-      if (data.signedURL) {
-        return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
-      }
-    }
-  } catch (err) {
-    console.error(`[SUPABASE STORAGE] Failed to generate signed URL:`, err.message);
   }
 
-  return `/api/projects/stream?path=${encodeURIComponent(videoPath)}`;
+  // Direct REST / URL construction fallback for public buckets
+  return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
 }
 
 /**
- * Delete a video file from the private Supabase bucket
+ * Backward-compatible alias function for getPublicVideoUrl (does not expire).
+ * @param {string} videoPath - Storage path inside the bucket
+ * @returns {Promise<string>|string} Permanent public URL
+ */
+async function getSignedVideoUrl(videoPath) {
+  return getPublicVideoUrl(videoPath);
+}
+
+/**
+ * Delete a video or image file from the Supabase bucket
  * @param {string} videoPath - Storage path inside the bucket
  */
 async function deleteVideo(videoPath) {
@@ -308,7 +283,7 @@ async function deleteVideo(videoPath) {
     });
     return true;
   } catch (err) {
-    console.warn(`[SUPABASE STORAGE] Could not delete video ${videoPath}:`, err.message);
+    console.warn(`[SUPABASE STORAGE] Could not delete file ${videoPath}:`, err.message);
     return false;
   }
 }
@@ -318,6 +293,8 @@ module.exports = {
   ensureBucket,
   uploadVideo,
   uploadImage,
+  getPublicVideoUrl,
+  getPublicUrl: getPublicVideoUrl,
   getSignedVideoUrl,
   deleteVideo,
   BUCKET_NAME,
