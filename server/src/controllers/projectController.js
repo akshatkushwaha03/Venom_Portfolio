@@ -1,5 +1,4 @@
 const prisma = require('../lib/prisma');
-const supabaseService = require('../lib/supabase');
 
 /**
  * GET /api/projects
@@ -199,27 +198,6 @@ async function deleteProject(req, res) {
 }
 
 /**
- * GET /api/projects/storage/status
- * Check storage configuration & status
- */
-async function getStorageStatus(req, res) {
-  try {
-    const configured = supabaseService ? supabaseService.isConfigured() : true;
-    return res.status(200).json({
-      success: true,
-      configured,
-      status: 'ready',
-    });
-  } catch (error) {
-    return res.status(200).json({
-      success: true,
-      configured: true,
-      status: 'online',
-    });
-  }
-}
-
-/**
  * GET /api/projects/categories
  * Get list of all distinct project categories stored in DB
  */
@@ -255,5 +233,4 @@ module.exports = {
   updateProject,
   deleteProject,
   getCategories,
-  getStorageStatus,
 };

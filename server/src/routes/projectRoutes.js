@@ -4,12 +4,6 @@ const projectController = require('../controllers/projectController');
 const router = express.Router();
 
 /**
- * Storage Health / Status Check
- * GET /api/projects/storage/status
- */
-router.get('/storage/status', projectController.getStorageStatus);
-
-/**
  * List Projects
  * GET /api/projects
  * Query params: ?category=Personal%20Projects

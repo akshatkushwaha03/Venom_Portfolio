@@ -73,97 +73,6 @@ export async function getProjectById(id) {
 }
 
 /**
- * Upload a media file (video or image) to Supabase Storage with progress tracking
- * @param {File} file - The file object
- * @param {'video' | 'image'} type - The file type
- * @param {function} [onProgress] - Progress callback (percent: number) => void
- */
-export function uploadMediaFile(file, type = 'video', onProgress) {
-  return new Promise((resolve, reject) => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const xhr = new XMLHttpRequest();
-    const endpoint = type === 'image' ? `${API_BASE}/api/upload/image` : `${API_BASE}/api/upload/video`;
-    xhr.open('POST', endpoint);
-
-    if (xhr.upload && onProgress) {
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          onProgress(percent);
-        }
-      });
-    }
-
-    xhr.onload = () => {
-      let responseJson = null;
-      try {
-        responseJson = JSON.parse(xhr.responseText);
-      } catch (e) {
-        // response was not JSON
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(responseJson);
-      } else {
-        const errorMsg = responseJson?.message || `Upload failed with HTTP ${xhr.status}`;
-        reject(new Error(errorMsg));
-      }
-    };
-
-    xhr.onerror = () => {
-      reject(new Error('Network error during file upload. Check backend connection.'));
-    };
-
-    xhr.send(formData);
-  });
-}
-
-/**
- * Upload a project with video directly
- */
-export function createProjectWithUpload(formData, onProgress) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${API_BASE}/api/upload/video`);
-
-    if (xhr.upload && onProgress) {
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          onProgress(percent);
-        }
-      });
-    }
-
-    xhr.onload = () => {
-      let responseJson = null;
-      try {
-        responseJson = JSON.parse(xhr.responseText);
-      } catch (e) {
-        // response was not JSON
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(responseJson?.data || responseJson);
-      } else {
-        const errorMsg = responseJson?.message || `Upload failed with HTTP ${xhr.status}`;
-        reject(new Error(errorMsg));
-      }
-    };
-
-    xhr.onerror = () => {
-      reject(new Error('Network error during file upload. Check backend connection.'));
-    };
-
-    xhr.send(formData);
-  });
-}
-
-
-
-/**
  * Delete a project by ID
  */
 export async function deleteProject(id) {
@@ -175,17 +84,4 @@ export async function deleteProject(id) {
     throw new Error(errData.message || 'Failed to delete project');
   }
   return await res.json();
-}
-
-/**
- * Check Supabase Storage bucket status
- */
-export async function getStorageStatus() {
-  try {
-    const res = await fetch(`${API_BASE}/api/projects/storage/status`);
-    if (!res.ok) return { configured: false };
-    return await res.json();
-  } catch (err) {
-    return { configured: false, error: err.message };
-  }
 }
