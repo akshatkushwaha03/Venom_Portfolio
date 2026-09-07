@@ -18,18 +18,18 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: radial-gradient(circle at 50% 30%, rgba(157, 78, 221, 0.15) 0%, #060608 70%);
+  background: radial-gradient(circle at 50% 30%, rgba(20, 184, 166, 0.15) 0%, #040a09 70%);
 }
 
 .authCard {
   width: 100%;
   max-width: 440px;
-  background: rgba(18, 11, 28, 0.85);
-  border: 1px solid rgba(157, 78, 221, 0.3);
+  background: rgba(6, 24, 22, 0.85);
+  border: 1px solid rgba(20, 184, 166, 0.3);
   border-radius: 12px;
   padding: 40px 32px;
   backdrop-filter: blur(16px);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(157, 78, 221, 0.2);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(20, 184, 166, 0.2);
 }
 
 .authHeader {
@@ -47,7 +47,7 @@
 }
 
 .dot {
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
 }
 
 .authBadge {
@@ -55,9 +55,9 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   padding: 4px 10px;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  color: var(--accent-purple, #a855f7);
+  background: rgba(20, 184, 166, 0.15);
+  border: 1px solid rgba(20, 184, 166, 0.4);
+  color: var(--accent-purple, #14b8a6);
   border-radius: 9999px;
 }
 
@@ -108,8 +108,8 @@
 }
 
 .input:focus {
-  border-color: var(--accent-purple, #a855f7);
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+  border-color: var(--accent-purple, #14b8a6);
+  box-shadow: 0 0 10px rgba(20, 184, 166, 0.3);
 }
 
 .errorMessage {
@@ -121,7 +121,7 @@
 .authBtn {
   width: 100%;
   padding: 14px;
-  background: var(--accent-purple, #a855f7);
+  background: var(--accent-purple, #14b8a6);
   color: #ffffff;
   border: none;
   border-radius: 6px;
@@ -130,12 +130,12 @@
   letter-spacing: 0.1em;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.3);
 }
 
 .authBtn:hover {
-  background: #9333ea;
-  box-shadow: 0 6px 25px rgba(168, 85, 247, 0.5);
+  background: #0d9488;
+  box-shadow: 0 6px 25px rgba(20, 184, 166, 0.5);
 }
 
 .authFootnote {
@@ -159,7 +159,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
   display: block;
   margin-bottom: 6px;
 }
@@ -226,7 +226,7 @@
 
 .createBtn {
   padding: 12px 24px;
-  background: var(--accent-purple, #a855f7);
+  background: var(--accent-purple, #14b8a6);
   color: #ffffff;
   border: none;
   border-radius: 9999px;
@@ -235,13 +235,13 @@
   letter-spacing: 0.08em;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.4);
 }
 
 .createBtn:hover {
-  background: #9333ea;
+  background: #0d9488;
   transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 30px rgba(20, 184, 166, 0.6);
 }
 
 /* Stats Overview */
@@ -253,7 +253,7 @@
 }
 
 .statCard {
-  background: rgba(18, 11, 28, 0.6);
+  background: rgba(6, 24, 22, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 24px;
@@ -266,7 +266,7 @@
   font-family: var(--font-display, 'Syne', sans-serif);
   font-size: 2.2rem;
   font-weight: 800;
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
 }
 
 .statLbl {
@@ -312,14 +312,14 @@
 
 .filterPillActive,
 .filterPill:hover {
-  background: var(--accent-purple, #a855f7);
-  border-color: var(--accent-purple, #a855f7);
+  background: var(--accent-purple, #14b8a6);
+  border-color: var(--accent-purple, #14b8a6);
   color: #ffffff;
 }
 
 /* Table Area */
 .tableWrapper {
-  background: rgba(18, 11, 28, 0.7);
+  background: rgba(6, 24, 22, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   overflow: hidden;
@@ -347,7 +347,7 @@
 }
 
 .tableRow:hover {
-  background: rgba(168, 85, 247, 0.04);
+  background: rgba(20, 184, 166, 0.06);
 }
 
 .table td {
@@ -384,9 +384,9 @@
 .catBadge {
   display: inline-block;
   padding: 4px 10px;
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  color: #d8b4fe;
+  background: rgba(20, 184, 166, 0.12);
+  border: 1px solid rgba(20, 184, 166, 0.3);
+  color: #99f6e4;
   border-radius: 9999px;
   font-size: 0.72rem;
   font-weight: 600;
@@ -401,7 +401,7 @@
 }
 
 .urlLink {
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
   text-decoration: none;
   font-size: 0.75rem;
   font-weight: 700;
@@ -411,7 +411,7 @@
 
 .urlLink:hover {
   text-decoration: underline;
-  color: #c084fc;
+  color: #5eead4;
 }
 
 .dateText {
@@ -461,7 +461,7 @@
 .emptyState {
   text-align: center;
   padding: 80px 24px;
-  background: rgba(18, 11, 28, 0.5);
+  background: rgba(6, 24, 22, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
 }
@@ -469,8 +469,8 @@
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(168, 85, 247, 0.2);
-  border-top-color: var(--accent-purple, #a855f7);
+  border: 3px solid rgba(20, 184, 166, 0.2);
+  border-top-color: var(--accent-purple, #14b8a6);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 16px auto;
@@ -499,8 +499,8 @@
 .modalCard {
   width: 100%;
   max-width: 620px;
-  background: #0d0714;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: #030d0c;
+  border: 1px solid rgba(20, 184, 166, 0.3);
   border-radius: 12px;
   padding: 32px;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
@@ -569,7 +569,7 @@
 
 .select:focus,
 .textarea:focus {
-  border-color: var(--accent-purple, #a855f7);
+  border-color: var(--accent-purple, #14b8a6);
 }
 
 /* File Upload & Section Box */
@@ -610,23 +610,23 @@
 }
 
 .toggleBtnActive {
-  background: var(--accent-purple, #a855f7);
+  background: var(--accent-purple, #14b8a6);
   color: #ffffff;
 }
 
 .dropZone {
   position: relative;
-  border: 2px dashed rgba(168, 85, 247, 0.35);
+  border: 2px dashed rgba(20, 184, 166, 0.35);
   border-radius: 8px;
   padding: 24px;
   text-align: center;
-  background: rgba(168, 85, 247, 0.03);
+  background: rgba(20, 184, 166, 0.03);
   transition: border-color 0.3s ease, background 0.3s ease;
 }
 
 .dropZone:hover {
-  border-color: var(--accent-purple, #a855f7);
-  background: rgba(168, 85, 247, 0.08);
+  border-color: var(--accent-purple, #14b8a6);
+  background: rgba(20, 184, 166, 0.08);
 }
 
 .fileInput {
@@ -654,7 +654,7 @@
 
 .fileName {
   font-weight: 700;
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
   word-break: break-all;
 }
 
@@ -670,7 +670,7 @@
 
 .progressBar {
   height: 100%;
-  background: linear-gradient(90deg, #a855f7, #ec4899);
+  background: linear-gradient(90deg, #0d9488, #14b8a6);
   transition: width 0.2s ease-out;
 }
 
@@ -688,11 +688,11 @@
 
 .statusBox {
   padding: 10px 14px;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: rgba(20, 184, 166, 0.15);
+  border: 1px solid rgba(20, 184, 166, 0.3);
   border-radius: 6px;
   font-size: 0.8rem;
-  color: #d8b4fe;
+  color: #99f6e4;
   text-align: center;
 }
 
@@ -746,18 +746,18 @@
 
 .submitBtn {
   padding: 10px 24px;
-  background: var(--accent-purple, #a855f7);
+  background: var(--accent-purple, #14b8a6);
   color: #ffffff;
   border: none;
   border-radius: 6px;
   font-weight: 700;
   font-size: 0.8rem;
   cursor: pointer;
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 15px rgba(20, 184, 166, 0.4);
 }
 
 .submitBtn:hover {
-  background: #9333ea;
+  background: #0d9488;
 }
 
 /* Toast */

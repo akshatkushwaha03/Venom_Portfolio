@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import heroCharacterImg from '@/assets/images/hero_character_transparent.png';
 import styles from './Hero.module.css';
 
 export const Hero = () => {
@@ -53,10 +54,14 @@ export const Hero = () => {
     };
   }, [reducedMotion]);
 
-  // Subtle interactive parallax on text
+  // Subtle interactive parallax on text and character (depth separation)
   const textParallax = reducedMotion
     ? 'translate(-50%, -50%)'
     : `translate(calc(-50% + ${mouseOffset.x * -10}px), calc(-50% + ${mouseOffset.y * -8}px))`;
+
+  const characterParallax = reducedMotion
+    ? 'translate(-50%, 0)'
+    : `translate(calc(-50% + ${mouseOffset.x * 10}px), calc(${mouseOffset.y * 8}px))`;
 
   return (
     <section
@@ -87,6 +92,21 @@ export const Hero = () => {
           <span className={styles.bigPortfolioText}>
             PORTFOLIO
           </span>
+        </div>
+
+        {/* Foreground Hero Character (overlapping PORTFOLIO text, faded from bottom) */}
+        <div
+          className={styles.characterLayer}
+          style={{ transform: characterParallax }}
+          aria-hidden="true"
+        >
+          <img
+            src={heroCharacterImg}
+            alt="Akshat — Visual Storyteller & Cinematographer"
+            className={styles.characterImg}
+            loading="eager"
+            decoding="async"
+          />
         </div>
 
         {/* Bottom-Left Editorial Text: "// Video Editor \n Visual Designer" */}

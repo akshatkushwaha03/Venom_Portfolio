@@ -7,7 +7,7 @@
   background-color: var(--bg-poster);
   background-image: 
     radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.45) 0%, transparent 70%),
-    radial-gradient(circle at 85% 15%, rgba(92, 22, 138, 0.05) 0%, transparent 40%);
+    radial-gradient(circle at 85% 15%, rgba(20, 184, 166, 0.06) 0%, transparent 40%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,14 +81,14 @@
   width: 100%;
   font-weight: 900;
   
-  /* Black at top, gradually transitioning to cinematic dark VENOM purple at bottom */
+  /* Black at top, gradually transitioning to cinematic dark VENOM teal green at bottom */
   background: var(--poster-gradient, linear-gradient(
     180deg,
-    #0d0b12 0%,
-    #180e24 30%,
-    #2d1045 58%,
-    #461266 82%,
-    #5c168a 100%
+    #060c0b 0%,
+    #071917 30%,
+    #0a2e29 58%,
+    #0c483f 82%,
+    #0f766e 100%
   ));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -109,6 +109,58 @@
     transform: scale(1) translateY(0);
   }
 }
+
+/* -------------------------------------------------------------
+   Hero Character: Middle Foreground Overlapping PORTFOLIO Text
+   ------------------------------------------------------------- */
+.characterLayer {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 3;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  transition: transform 0.28s var(--ease-cinematic);
+  will-change: transform;
+}
+
+.characterImg {
+  display: block;
+  height: clamp(450px, 66vh, 730px);
+  width: auto;
+  max-width: 92vw;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: contrast(1.02) drop-shadow(0 18px 40px rgba(0, 0, 0, 0.22));
+  -webkit-mask-image: 
+    linear-gradient(to bottom, black 0%, black 45%, rgba(0, 0, 0, 0.7) 65%, transparent 94%),
+    linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: 
+    linear-gradient(to bottom, black 0%, black 45%, rgba(0, 0, 0, 0.7) 65%, transparent 94%),
+    linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+  mask-composite: intersect;
+  opacity: 0;
+  transform: scale(0.96) translateY(20px);
+  animation: revealCharacter 1.15s var(--ease-cinematic) 0.35s forwards;
+}
+
+@keyframes revealCharacter {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+
 
 /* -------------------------------------------------------------
    Small Editorial Annotations & Texts
@@ -248,6 +300,9 @@
   .bigPortfolioText {
     font-size: clamp(6rem, 20vw, 17.5rem);
   }
+  .characterImg {
+    height: clamp(400px, 64vh, 680px);
+  }
 }
 
 /* Tablets (768px - 1023px) */
@@ -256,8 +311,14 @@
     height: 100svh;
     min-height: 620px;
   }
+  .characterLayer {
+    top: 34%;
+  }
   .bigPortfolioText {
     font-size: clamp(5.2rem, 20.5vw, 14rem);
+  }
+  .characterImg {
+    height: clamp(350px, 58vh, 560px);
   }
   .metaTopLeft,
   .metaTopRight {
@@ -280,6 +341,14 @@
   .typographyLayer {
     top: 48%;
     width: 100vw;
+  }
+
+  .characterLayer {
+    top: 33%;
+  }
+
+  .characterImg {
+    height: clamp(290px, 52vh, 420px);
   }
 
   .bigPortfolioText {
@@ -319,5 +388,8 @@
 @media (max-width: 359px) {
   .bigPortfolioText {
     font-size: 4rem;
+  }
+  .characterImg {
+    height: clamp(240px, 46vh, 300px);
   }
 }

@@ -1,21 +1,21 @@
 /* =============================================================
    VENOM — SERVICES SECTION
-   Theme: Dark Velvety Purple (#0D0714) + Pure White + 5-Column Grid
+   Theme: Dark Cinematic Teal (#030D0C) + Pure White + 5-Column Grid
    ============================================================= */
 
 .servicesSection {
-  --svc-bg: #0D0714;
-  --svc-card-bg: rgba(18, 11, 28, 0.72);
-  --svc-card-hover-bg: rgba(28, 16, 44, 0.88);
+  --svc-bg: #030d0c;
+  --svc-card-bg: rgba(6, 24, 22, 0.72);
+  --svc-card-hover-bg: rgba(10, 36, 33, 0.88);
   --svc-border: rgba(255, 255, 255, 0.08);
-  --svc-border-hover: rgba(157, 78, 221, 0.42);
-  --svc-purple: #5C168A;
-  --svc-purple-bright: #9D4EDD;
-  --svc-purple-light: #C77DFF;
-  --svc-purple-glow: rgba(157, 78, 221, 0.3);
+  --svc-border-hover: rgba(45, 212, 191, 0.42);
+  --svc-purple: #0f766e;
+  --svc-purple-bright: #14b8a6;
+  --svc-purple-light: #5eead4;
+  --svc-purple-glow: rgba(20, 184, 166, 0.3);
   --svc-text-white: #FFFFFF;
-  --svc-text-off: #F1EDF8;
-  --svc-text-muted: #8E8799;
+  --svc-text-off: #ecfdf5;
+  --svc-text-muted: #849e99;
 
   position: relative;
   width: 100%;
@@ -24,6 +24,11 @@
   padding: clamp(80px, 12vh, 150px) clamp(20px, 4vw, 72px);
   overflow: hidden;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.servicesSectionPreview {
+  padding-top: clamp(60px, 8vh, 100px);
+  padding-bottom: clamp(60px, 8vh, 100px);
 }
 
 /* Subtle Analog Film Grain Overlay */
@@ -38,14 +43,14 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* Ambient Radial Purple Glows */
+/* Ambient Radial Teal Glows */
 .ambientGlowTop {
   position: absolute;
   top: 0;
   right: 10%;
   width: 600px;
   height: 400px;
-  background: radial-gradient(circle, rgba(92, 22, 138, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.14) 0%, transparent 70%);
   pointer-events: none;
   z-index: 1;
 }
@@ -56,7 +61,7 @@
   left: 10%;
   width: 700px;
   height: 450px;
-  background: radial-gradient(circle, rgba(60, 9, 108, 0.14) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.14) 0%, transparent 70%);
   pointer-events: none;
   z-index: 1;
 }
@@ -79,6 +84,7 @@
 .systemTagRow {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   font-family: var(--font-mono, 'Space Grotesk', monospace);
   font-size: 0.74rem;
@@ -86,6 +92,102 @@
   text-transform: uppercase;
   color: var(--svc-text-muted);
   margin-bottom: 20px;
+}
+
+.systemTagLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slashAccent {
+  color: var(--svc-purple-bright, #14b8a6);
+  font-weight: 800;
+  font-size: 1.1em;
+}
+
+.headerIndex {
+  color: var(--svc-text-white, #ffffff);
+  font-weight: 700;
+}
+
+.sectionIconBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sectionIconBtn:hover {
+  background: var(--svc-purple-bright, #14b8a6);
+  border-color: var(--svc-purple-bright, #14b8a6);
+  color: #030d0c;
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(20, 184, 166, 0.5);
+}
+
+.sectionIconBtn svg {
+  transition: transform 0.2s ease;
+}
+
+.sectionIconBtn:hover svg {
+  transform: translate(2px, -2px);
+}
+
+@media (max-width: 600px) {
+  .sectionIconBtn {
+    padding: 6px 9px;
+  }
+  .sectionIconBtn span {
+    display: none;
+  }
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.backBtn:hover {
+  background: var(--svc-purple-bright, #14b8a6);
+  border-color: var(--svc-purple-bright, #14b8a6);
+  color: #030d0c;
+  transform: translateX(-3px);
+  box-shadow: 0 0 16px rgba(20, 184, 166, 0.5);
+}
+
+.backArrow {
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.backBtn:hover .backArrow {
+  transform: translateX(-2px);
 }
 
 .systemTag {
@@ -208,7 +310,7 @@
 .cardTextureOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(13, 7, 20, 0.3) 0%, rgba(13, 7, 20, 0.95) 100%);
+  background: linear-gradient(180deg, rgba(3, 13, 12, 0.3) 0%, rgba(3, 13, 12, 0.95) 100%);
   pointer-events: none;
 }
 
@@ -284,7 +386,7 @@
 
 .serviceCard:hover .cardTitle {
   color: #FFFFFF;
-  text-shadow: 0 0 16px rgba(157, 78, 221, 0.3);
+  text-shadow: 0 0 16px rgba(45, 212, 191, 0.3);
 }
 
 .cardDesc {

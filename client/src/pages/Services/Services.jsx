@@ -1,7 +1,18 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './Services.module.css';
 
-export const Services = ({ id = 'services' }) => {
+export const Services = ({ id = 'services', actionLink = null, isPreview = false }) => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
+
   const services = [
     {
       num: '01',
@@ -75,7 +86,11 @@ export const Services = ({ id = 'services' }) => {
   ];
 
   return (
-    <section id={id} className={styles.servicesSection} aria-label="Venom Services">
+    <section
+      id={id}
+      className={`${styles.servicesSection} ${isPreview ? styles.servicesSectionPreview : ''}`}
+      aria-label="Venom Services"
+    >
       {/* Subtle Analog Film Grain Overlay */}
       <div className={styles.grainOverlay} aria-hidden="true" />
 
@@ -87,9 +102,50 @@ export const Services = ({ id = 'services' }) => {
         {/* Section Header */}
         <header className={styles.sectionHeader}>
           <div className={styles.systemTagRow}>
-            <span className={styles.systemTag}>// SERVICES & CAPABILITIES</span>
-            <span className={styles.dotDivider}>•</span>
-            <span className={styles.categoryCount}>05 DISCIPLINES</span>
+            <div className={styles.systemTagLeft}>
+              <span className={styles.slashAccent}>//</span>
+              <span className={styles.headerIndex}>03 SERVICES</span>
+              <span className={styles.dotDivider}>•</span>
+              <span className={styles.categoryCount}>05 DISCIPLINES</span>
+            </div>
+            {isPreview ? (
+              actionLink && (
+                <Link
+                  to={actionLink}
+                  className={styles.sectionIconBtn}
+                  title="View All Services"
+                  aria-label="View All Services"
+                  data-magnetic
+                >
+                  <span>ALL SERVICES</span>
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
+                  </svg>
+                </Link>
+              )
+            ) : (
+              <button
+                type="button"
+                className={styles.backBtn}
+                onClick={handleBack}
+                aria-label="Go Back"
+                title="Go back to previous page"
+                data-magnetic
+              >
+                <span className={styles.backArrow}>←</span>
+                <span>BACK</span>
+              </button>
+            )}
           </div>
 
           <h2 className={styles.mainHeading} data-kinetic>

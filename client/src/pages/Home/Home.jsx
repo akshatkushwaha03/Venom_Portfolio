@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import Hero from './Hero';
 import About from '../About';
 import Work from '../Work';
@@ -78,26 +77,12 @@ export const Home = () => {
         <Hero />
       </div>
 
-      <div className={styles.interSectionDivider} aria-hidden="true">
-        <span className={styles.dividerGlowDot} />
-      </div>
-
       {/* 02 — ABOUT PREVIEW */}
       <div
         data-section-id="about"
         className={`${styles.sectionWrapper} ${visibleSections.about ? styles.sectionVisible : ''}`}
       >
-        <About id="about" />
-        <div className={styles.pageCtaBanner}>
-          <Link to="/about" className={styles.ctaBtn} data-magnetic>
-            <span>LEARN MORE ABOUT AKSHAT</span>
-            <span className={styles.ctaArrow}>→</span>
-          </Link>
-        </div>
-      </div>
-
-      <div className={styles.interSectionDivider} aria-hidden="true">
-        <span className={styles.dividerGlowDot} />
+        <About id="about" actionLink="/about" isPreview={true} />
       </div>
 
       {/* 03 — WORK PREVIEW */}
@@ -105,17 +90,7 @@ export const Home = () => {
         data-section-id="work"
         className={`${styles.sectionWrapper} ${visibleSections.work ? styles.sectionVisible : ''}`}
       >
-        <Work id="work" />
-        <div className={styles.pageCtaBanner}>
-          <Link to="/work" className={styles.ctaBtn} data-magnetic>
-            <span>EXPLORE FULL WORK ARCHIVE</span>
-            <span className={styles.ctaArrow}>→</span>
-          </Link>
-        </div>
-      </div>
-
-      <div className={styles.interSectionDivider} aria-hidden="true">
-        <span className={styles.dividerGlowDot} />
+        <Work id="work" actionLink="/work" isPreview={true} />
       </div>
 
       {/* 04 — SERVICES PREVIEW */}
@@ -123,13 +98,7 @@ export const Home = () => {
         data-section-id="services"
         className={`${styles.sectionWrapper} ${visibleSections.services ? styles.sectionVisible : ''}`}
       >
-        <Services id="services" />
-        <div className={styles.pageCtaBanner}>
-          <Link to="/services" className={styles.ctaBtn} data-magnetic>
-            <span>VIEW ALL SERVICES & CAPABILITIES</span>
-            <span className={styles.ctaArrow}>→</span>
-          </Link>
-        </div>
+        <Services id="services" actionLink="/services" isPreview={true} />
       </div>
 
       {/* INTERACTIVE CINEMATIC MARQUEE */}

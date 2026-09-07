@@ -8,23 +8,26 @@ import Services from '@/pages/Services';
 import Contact from '@/pages/Contact';
 import Admin from '@/pages/Admin';
 import NotFound from '@/pages/NotFound';
+import { LiquidTransitionProvider } from '@/components/common/LiquidTransition';
 import './App.css';
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-          <Route path="about" element={<About />} />
-          <Route path="work" element={<Work />} />
-          <Route path="work/:categoryName" element={<Work />} />
-          <Route path="services" element={<Services />} />
-          <Route path="contact" element={<Contact />} />
-          <Route path="admin" element={<Admin />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
+      <LiquidTransitionProvider>
+        <Routes>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="about" element={<About />} />
+            <Route path="work" element={<Work />} />
+            <Route path="work/:categoryName" element={<Work />} />
+            <Route path="services" element={<Services />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="admin" element={<Admin />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </LiquidTransitionProvider>
     </BrowserRouter>
   );
 }

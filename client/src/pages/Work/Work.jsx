@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getProjects } from '@/services/api';
 import useInteractionLayer from '@/hooks/useInteractionLayer';
+import { useLiquidTransition } from '@/components/common/LiquidTransition';
 import styles from './Work.module.css';
 
 // Helper to parse video embed links (YouTube / Vimeo / Direct MP4)
@@ -24,11 +25,21 @@ const parseMediaSource = (url) => {
   return { type: 'video', src: url };
 };
 
-export const Work = () => {
+export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
   useInteractionLayer();
+  const { navigateWithLiquid } = useLiquidTransition();
 
   const { categoryName } = useParams();
   const navigate = useNavigate();
+
+  const handleBack = (e) => {
+    const origin = e && typeof e.clientX === 'number' ? { x: e.clientX, y: e.clientY } : null;
+    if (window.history.state && window.history.state.idx > 0) {
+      navigateWithLiquid(-1, { origin });
+    } else {
+      navigateWithLiquid('/', { origin });
+    }
+  };
 
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +109,11 @@ export const Work = () => {
   }, [decodedCategory, categoriesList, categoryProjects]);
 
   return (
-    <section className={styles.workSection} aria-label="Portfolio Work Archive">
+    <section
+      id={id}
+      className={`${styles.workSection} ${isPreview ? styles.workSectionPreview : ''}`}
+      aria-label="Portfolio Work Archive"
+    >
       <div className={styles.grainOverlay} aria-hidden="true" />
 
       <div className={styles.container}>
@@ -107,6 +122,50 @@ export const Work = () => {
            ================================================================= */}
         {!decodedCategory ? (
           <div className={styles.stageDirectory}>
+            <div className={styles.topActionRow}>
+              <div className={styles.headerTagRow}>
+                <span className={styles.slashAccent}>//</span>
+                <span className={styles.headerIndex}>02 WORK</span>
+              </div>
+              {isPreview ? (
+                actionLink && (
+                  <Link
+                    to={actionLink}
+                    className={styles.sectionIconBtn}
+                    title="Open Full Work Archive"
+                    aria-label="Open Full Work Archive"
+                    data-magnetic
+                  >
+                    <span>VIEW ARCHIVE</span>
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M7 17L17 7" />
+                      <path d="M7 7h10v10" />
+                    </svg>
+                  </Link>
+                )
+              ) : (
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  onClick={handleBack}
+                  aria-label="Go Back"
+                  title="Go back to previous page"
+                  data-magnetic
+                >
+                  <span className={styles.backArrow}>←</span>
+                  <span>BACK</span>
+                </button>
+              )}
+            </div>
             <header className={styles.headerBlock}>
               <span className={styles.headerTag}>// VENOM STUDIOS // LIVE ARCHIVE</span>
               <h1 className={styles.mainHeading} data-kinetic>
@@ -130,7 +189,7 @@ export const Work = () => {
                     className={styles.categoryCard}
                     data-tilt
                     data-magnetic
-                    onClick={() => navigate(`/work/${encodeURIComponent(cat.name)}`)}
+                    onClick={(e) => navigateWithLiquid(`/work/${encodeURIComponent(cat.name)}`, { origin: { x: e.clientX, y: e.clientY } })}
                   >
                     <div className={styles.catCardTop}>
                       <span className={styles.catIndex}>[{cat.id}]</span>
@@ -174,13 +233,13 @@ export const Work = () => {
               <button
                 type="button"
                 className={styles.backBtn}
-                onClick={() => navigate('/work')}
+                onClick={(e) => navigateWithLiquid('/work', { origin: { x: e.clientX, y: e.clientY } })}
               >
                 <span className={styles.backArrow}>←</span> ALL CATEGORIES
               </button>
 
               <span className={styles.breadCrumb}>
-                WORK // <strong style={{ color: '#a855f7' }}>{currentCategoryMeta?.name}</strong>
+                WORK // <strong style={{ color: '#14b8a6' }}>{currentCategoryMeta?.name}</strong>
               </span>
             </div>
 
@@ -256,7 +315,7 @@ export const Work = () => {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => navigate('/work')}
+                    onClick={(e) => navigateWithLiquid('/work', { origin: { x: e.clientX, y: e.clientY } })}
                     className={styles.backLinkBtn}
                   >
                     ← VIEW OTHER CATEGORIES

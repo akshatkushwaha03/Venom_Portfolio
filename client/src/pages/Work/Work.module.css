@@ -8,6 +8,85 @@
   overflow-x: hidden;
 }
 
+.workSectionPreview {
+  min-height: auto;
+  padding-top: clamp(60px, 8vh, 100px);
+  padding-bottom: clamp(60px, 8vh, 100px);
+}
+
+.topActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 24px;
+  margin-bottom: clamp(32px, 5vh, 48px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.headerTagRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.slashAccent {
+  color: var(--accent-purple, #14b8a6);
+  font-weight: 800;
+  font-size: 1.1em;
+}
+
+.headerIndex {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.sectionIconBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sectionIconBtn:hover {
+  background: var(--accent-purple, #14b8a6);
+  border-color: var(--accent-purple, #14b8a6);
+  color: #030d0c;
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(20, 184, 166, 0.5);
+}
+
+.sectionIconBtn svg {
+  transition: transform 0.2s ease;
+}
+
+.sectionIconBtn:hover svg {
+  transform: translate(2px, -2px);
+}
+
+@media (max-width: 600px) {
+  .sectionIconBtn {
+    padding: 6px 9px;
+  }
+  .sectionIconBtn span {
+    display: none;
+  }
+}
+
 .grainOverlay {
   position: absolute;
   inset: 0;
@@ -43,7 +122,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
   display: block;
   margin-bottom: 8px;
 }
@@ -83,7 +162,7 @@
 }
 
 .categoryCard {
-  background: rgba(18, 11, 28, 0.75);
+  background: rgba(6, 24, 22, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 32px;
@@ -105,16 +184,16 @@
   left: 0;
   width: 100%;
   height: 3px;
-  background: linear-gradient(90deg, transparent, var(--accent-purple, #a855f7), transparent);
+  background: linear-gradient(90deg, transparent, var(--accent-purple, #14b8a6), transparent);
   opacity: 0;
   transition: opacity 0.35s ease;
 }
 
 .categoryCard:hover {
-  background: rgba(28, 16, 44, 0.95);
-  border-color: rgba(168, 85, 247, 0.45);
+  background: rgba(10, 36, 33, 0.95);
+  border-color: rgba(45, 212, 191, 0.45);
   transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(168, 85, 247, 0.25);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(20, 184, 166, 0.25);
 }
 
 .categoryCard:hover::before {
@@ -132,17 +211,17 @@
   font-family: var(--font-mono, 'Space Grotesk', monospace);
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
 }
 
 .catCountBadge {
   padding: 4px 10px;
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: rgba(20, 184, 166, 0.12);
+  border: 1px solid rgba(20, 184, 166, 0.3);
   border-radius: 9999px;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #d8b4fe;
+  color: #99f6e4;
   letter-spacing: 0.05em;
 }
 
@@ -171,7 +250,7 @@
 }
 
 .categoryCard:hover .catTitle {
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
 }
 
 .catDesc {
@@ -197,7 +276,7 @@
 }
 
 .categoryCard:hover .exploreLink {
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
   transform: translateX(4px);
 }
 
@@ -234,13 +313,21 @@
 }
 
 .backBtn:hover {
-  background: var(--accent-purple, #a855f7);
-  border-color: var(--accent-purple, #a855f7);
+  background: var(--accent-purple, #14b8a6);
+  border-color: var(--accent-purple, #14b8a6);
+  color: #030d0c;
   transform: translateX(-4px);
+  box-shadow: 0 0 16px rgba(20, 184, 166, 0.5);
 }
 
 .backArrow {
   font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.backBtn:hover .backArrow {
+  transform: translateX(-2px);
 }
 
 .breadCrumb {
@@ -258,7 +345,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
   display: block;
   margin-bottom: 8px;
 }
@@ -298,7 +385,7 @@
 }
 
 .projectCard {
-  background: rgba(18, 11, 28, 0.7);
+  background: rgba(6, 24, 22, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   overflow: hidden;
@@ -311,8 +398,8 @@
 
 .projectCard:hover {
   transform: translateY(-6px);
-  border-color: rgba(168, 85, 247, 0.45);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(168, 85, 247, 0.25);
+  border-color: rgba(45, 212, 191, 0.45);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(20, 184, 166, 0.25);
 }
 
 .thumbnailStage {
@@ -342,7 +429,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.2) 0%, #0d0714 80%);
+  background: radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.2) 0%, #030d0c 80%);
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.75rem;
   font-weight: 700;
@@ -351,8 +438,8 @@
 
 .playIconLarge {
   font-size: 2rem;
-  color: var(--accent-purple, #a855f7);
-  filter: drop-shadow(0 0 12px var(--accent-purple, #a855f7));
+  color: var(--accent-purple, #14b8a6);
+  filter: drop-shadow(0 0 12px var(--accent-purple, #14b8a6));
 }
 
 .stageOverlay {
@@ -372,7 +459,7 @@
 
 .playBadgeBtn {
   padding: 10px 20px;
-  background: var(--accent-purple, #a855f7);
+  background: var(--accent-purple, #14b8a6);
   color: #ffffff;
   border: none;
   border-radius: 9999px;
@@ -380,7 +467,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   cursor: pointer;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
 }
 
 .projectInfo {
@@ -402,8 +489,8 @@
   font-size: 0.68rem;
   font-weight: 700;
   padding: 4px 8px;
-  background: rgba(168, 85, 247, 0.15);
-  color: #d8b4fe;
+  background: rgba(20, 184, 166, 0.15);
+  color: #99f6e4;
   border-radius: 4px;
 }
 
@@ -433,7 +520,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
 }
 
 /* Empty & Loading States */
@@ -441,7 +528,7 @@
 .emptyBox {
   text-align: center;
   padding: 80px 24px;
-  background: rgba(18, 11, 28, 0.5);
+  background: rgba(6, 24, 22, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
 }
@@ -449,8 +536,8 @@
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(168, 85, 247, 0.2);
-  border-top-color: var(--accent-purple, #a855f7);
+  border: 3px solid rgba(20, 184, 166, 0.2);
+  border-top-color: var(--accent-purple, #14b8a6);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 16px auto;
@@ -482,14 +569,14 @@
 
 .adminBtn {
   padding: 12px 24px;
-  background: var(--accent-purple, #a855f7);
+  background: var(--accent-purple, #14b8a6);
   color: #ffffff;
   text-decoration: none;
   border-radius: 9999px;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.4);
 }
 
 .backLinkBtn {
@@ -521,8 +608,8 @@
 .modalCard {
   width: 100%;
   max-width: 1100px;
-  background: #0d0714;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: #030d0c;
+  border: 1px solid rgba(20, 184, 166, 0.3);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95);
@@ -549,8 +636,8 @@
   font-size: 0.72rem;
   font-weight: 700;
   padding: 4px 10px;
-  background: rgba(168, 85, 247, 0.15);
-  color: var(--accent-purple, #a855f7);
+  background: rgba(20, 184, 166, 0.15);
+  color: var(--accent-purple, #14b8a6);
   border-radius: 4px;
 }
 
@@ -584,7 +671,7 @@
 
 .closeX {
   font-size: 0.9rem;
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
 }
 
 .videoContainer {
@@ -621,7 +708,7 @@
 .externalLinkBtn {
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--accent-purple, #a855f7);
+  color: var(--accent-purple, #14b8a6);
   text-decoration: none;
   letter-spacing: 0.05em;
   transition: color 0.2s ease;
@@ -629,5 +716,5 @@
 
 .externalLinkBtn:hover {
   text-decoration: underline;
-  color: #c084fc;
+  color: #5eead4;
 }

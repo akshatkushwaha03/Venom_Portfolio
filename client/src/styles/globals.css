@@ -69,18 +69,18 @@ img {
 }
 
 ::-webkit-scrollbar-track {
-  background: #07040A;
+  background: #030a09;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2A0845;
+  background: #0b3d36;
   border-radius: 4px;
-  border: 1px solid rgba(157, 78, 221, 0.2);
+  border: 1px solid rgba(45, 212, 191, 0.25);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #5C168A;
-  box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
+  background: #0f766e;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.5);
 }
 
 /* Subtle Cinematic Floating Keyframes */

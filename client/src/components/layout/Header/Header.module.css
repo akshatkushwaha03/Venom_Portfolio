@@ -19,12 +19,67 @@
 
 /* Scrolled State */
 .headerScrolled {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Dark Page / Light Nav State (Active on pages like /about, /work, /services, /contact, or when scrolled) */
+.headerDark {
   background-color: var(--bg-dark-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-glass);
   color: var(--text-white);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.headerDark .brand {
+  color: #ffffff;
+}
+
+.headerDark .brandDot {
+  color: var(--accent-teal-bright, #14b8a6);
+  text-shadow: 0 0 12px var(--accent-teal-glow, rgba(20, 184, 166, 0.45));
+}
+
+.headerDark .navItem {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.headerDark .navItem:hover {
+  color: #ffffff;
+  opacity: 1;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.headerDark .navItemActive {
+  color: #ffffff;
+  opacity: 1;
+  font-weight: 700;
+}
+
+.headerDark .navItemActive::after {
+  width: 100%;
+  background: var(--accent-teal-bright, #14b8a6);
+  box-shadow: 0 0 10px var(--accent-teal-glow, rgba(20, 184, 166, 0.45));
+}
+
+.headerDark .statusAction {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.headerDark .statusAction:hover {
+  background: rgba(20, 184, 166, 0.16);
+  border-color: rgba(20, 184, 166, 0.45);
+  color: #ffffff;
+}
+
+.headerDark .hamburger {
+  color: #ffffff;
+}
+
+.headerDark .hamburgerLine {
+  background-color: #ffffff;
 }
 
 /* Mobile Menu Open State */
@@ -120,11 +175,13 @@
 
 .navItemActive {
   opacity: 1;
-  color: var(--accent-purple);
+  color: var(--accent-teal-bright, #14b8a6);
 }
 
 .navItemActive::after {
   width: 100%;
+  background: var(--accent-teal-bright, #14b8a6);
+  box-shadow: 0 0 8px var(--accent-teal-glow, rgba(20, 184, 166, 0.45));
 }
 
 
@@ -151,14 +208,16 @@
     transition: all var(--duration-fast) ease;
   }
 
-  .headerScrolled .statusAction {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  .headerScrolled .statusAction,
+  .headerDark .statusAction {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #ffffff;
   }
 
   .statusAction:hover {
-    background: rgba(92, 22, 138, 0.12);
-    border-color: rgba(92, 22, 138, 0.35);
+    background: rgba(20, 184, 166, 0.14);
+    border-color: rgba(20, 184, 166, 0.4);
     transform: translateY(-1px);
   }
 }
@@ -167,8 +226,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent-purple);
-  box-shadow: 0 0 8px var(--accent-purple), 0 0 16px var(--accent-purple-glow);
+  background: var(--accent-teal-bright, #14b8a6);
+  box-shadow: 0 0 8px var(--accent-teal-bright, #14b8a6), 0 0 16px var(--accent-teal-glow, rgba(20, 184, 166, 0.45));
   display: inline-block;
   animation: pulseDot 2.4s infinite ease-in-out;
 }

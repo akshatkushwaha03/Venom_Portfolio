@@ -1,7 +1,7 @@
 :root {
   /* Brand Palettes */
-  --bg-dark: #08080a;
-  --bg-dark-glass: rgba(10, 10, 14, 0.82);
+  --bg-dark: #040a09;
+  --bg-dark-glass: rgba(4, 14, 13, 0.85);
   --bg-poster: #eae8e3;
   --bg-poster-tint: #f3f1ec;
 
@@ -11,20 +11,26 @@
   --text-white: #f8fafc;
   --text-light-muted: #9ca3af;
 
-  /* Accent Tones */
-  --accent-purple: #5c168a;
-  --accent-purple-bright: #7922b5;
-  --accent-purple-glow: rgba(92, 22, 138, 0.45);
-  --accent-slash: #5c168a;
+  /* Accent Tones (Teal Green Theme) */
+  --accent-teal: #0f766e;
+  --accent-teal-bright: #14b8a6;
+  --accent-teal-light: #5eead4;
+  --accent-teal-glow: rgba(20, 184, 166, 0.45);
+  /* Compatibility aliases for seamless theme adoption */
+  --accent-purple: #0f766e;
+  --accent-purple-bright: #14b8a6;
+  --accent-purple-light: #5eead4;
+  --accent-purple-glow: rgba(20, 184, 166, 0.45);
+  --accent-slash: #0f766e;
 
-  /* Typography Gradient (VENOM Dark Purple Poster Gradient) */
+  /* Typography Gradient (VENOM Cinematic Dark Teal Green Poster Gradient) */
   --poster-gradient: linear-gradient(
     180deg,
-    #0d0b12 0%,
-    #180e24 30%,
-    #2d1045 58%,
-    #461266 82%,
-    #5c168a 100%
+    #060c0b 0%,
+    #071917 30%,
+    #0a2e29 58%,
+    #0c483f 82%,
+    #0f766e 100%
   );
 
   /* Font Families */

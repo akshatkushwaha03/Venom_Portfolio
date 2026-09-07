@@ -1,7 +1,20 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './Contact.module.css';
 
 export const Contact = ({ id = 'contact' }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isStandalone = location.pathname === '/contact';
+
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
+
   // Direct contact details
   const emailAddress = 'venom.creative.stu@gmail.com';
   const instagramHandle = '@iam__v3nom';
@@ -117,9 +130,25 @@ export const Contact = ({ id = 'contact' }) => {
         {/* Editorial Section Header */}
         <header className={styles.sectionHeader}>
           <div className={styles.systemTagRow}>
-            <span className={styles.systemTag}>// INQUIRIES & COLLABORATION</span>
-            <span className={styles.dotDivider}>•</span>
-            <span className={styles.tagNum}>04 CONTACT</span>
+            <div className={styles.systemTagLeft}>
+              <span className={styles.slashAccent}>//</span>
+              <span className={styles.systemTag}>INQUIRIES & COLLABORATION</span>
+              <span className={styles.dotDivider}>•</span>
+              <span className={styles.tagNum}>04 CONTACT</span>
+            </div>
+            {isStandalone && (
+              <button
+                type="button"
+                className={styles.backBtn}
+                onClick={handleBack}
+                aria-label="Go Back"
+                title="Go back to previous page"
+                data-magnetic
+              >
+                <span className={styles.backArrow}>←</span>
+                <span>BACK</span>
+              </button>
+            )}
           </div>
 
           <h2 className={styles.mainTitle} data-kinetic>

@@ -6,7 +6,7 @@
   position: relative;
   width: 100%;
   overflow: hidden;
-  background-color: #07040A;
+  background-color: #030c0b;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding: 18px 0;
@@ -55,20 +55,20 @@
 
 .marqueeSection:hover .itemText {
   color: #FFFFFF;
-  text-shadow: 0 0 14px rgba(157, 78, 221, 0.4);
+  text-shadow: 0 0 14px rgba(45, 212, 191, 0.4);
 }
 
 .starSymbol {
-  color: #9D4EDD;
+  color: #14b8a6;
   font-size: 0.75rem;
   opacity: 0.75;
   transition: all 0.3s ease;
 }
 
 .marqueeSection:hover .starSymbol {
-  color: #C77DFF;
+  color: #5eead4;
   opacity: 1;
-  text-shadow: 0 0 10px #9D4EDD;
+  text-shadow: 0 0 10px #14b8a6;
   transform: scale(1.2);
 }
 

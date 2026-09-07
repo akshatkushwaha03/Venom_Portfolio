@@ -1,8 +1,18 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './About.module.css';
 
 // Optional creator photo: set to an image URL or import when ready
-export const About = ({ imageSrc = null, id = 'about' }) => {
+export const About = ({ imageSrc = null, id = 'about', actionLink = null, isPreview = false }) => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/');
+    }
+  };
   const disciplines = [
     'Cinematography',
     'Videography',
@@ -19,7 +29,11 @@ export const About = ({ imageSrc = null, id = 'about' }) => {
   ];
 
   return (
-    <section id={id} className={styles.aboutSection} aria-label="About Akshat - VENOM">
+    <section
+      id={id}
+      className={`${styles.aboutSection} ${isPreview ? styles.aboutSectionPreview : ''}`}
+      aria-label="About Akshat - VENOM"
+    >
       {/* Subtle Paper Texture Overlay */}
       <div className={styles.grainOverlay} aria-hidden="true" />
 
@@ -32,6 +46,44 @@ export const About = ({ imageSrc = null, id = 'about' }) => {
           </div>
           <div className={styles.headerRight}>
             <span className={styles.headerSubtitle}>THE EYE BEHIND VENOM</span>
+            {isPreview ? (
+              actionLink && (
+                <Link
+                  to={actionLink}
+                  className={styles.sectionIconBtn}
+                  title="Go to About page"
+                  aria-label="Go to About page"
+                  data-magnetic
+                >
+                  <span>EXPLORE</span>
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
+                  </svg>
+                </Link>
+              )
+            ) : (
+              <button
+                type="button"
+                className={styles.backBtn}
+                onClick={handleBack}
+                aria-label="Go Back"
+                title="Go back to previous page"
+                data-magnetic
+              >
+                <span className={styles.backArrow}>←</span>
+                <span>BACK</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -163,24 +215,239 @@ export const About = ({ imageSrc = null, id = 'about' }) => {
               </div>
             </div>
 
-            {/* Bottom Credentials Stats Row (from reference image) */}
-            <div className={styles.statsRow}>
-              {stats.map((stat, idx) => (
-                <div key={idx} className={styles.statItem}>
-                  <div className={styles.statDivider} aria-hidden="true" />
-                  <div className={styles.statInfo}>
-                    <span className={styles.statNumber}>{stat.number}</span>
-                    <span className={styles.statLabel}>
-                      {stat.labelLine1}
-                      <br />
-                      {stat.labelLine2}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {/* Preview Prompt to Explore Full Story */}
+            {isPreview && (
+              <div className={styles.previewExplorePrompt}>
+                <Link to="/about" className={styles.previewExploreLink} data-magnetic>
+                  <span>EXPLORE MY FULL JOURNEY & CREATIVE APPROACH</span>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
+                  </svg>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* =============================================================
+           EXTENDED STORY, JOURNEY & MY APPROACH SECTION
+           Visible when user explores the full About page
+           ============================================================= */}
+        {!isPreview && (
+          <div className={styles.extendedAbout}>
+            {/* Section Separation Badge */}
+            <div className={styles.editorialDivider}>
+              <span className={styles.dividerLine} />
+              <span className={styles.dividerBadge}>THE STORY & PHILOSOPHY</span>
+              <span className={styles.dividerLine} />
+            </div>
+
+            {/* 2-Column Journey & Evolution Grid */}
+            <div className={styles.journeyGrid}>
+              {/* Card 1: The Journey */}
+              <div className={styles.storyCard} data-tilt>
+                <div className={styles.storyCardHeader}>
+                  <span className={styles.storyCardIndex}>// 01 ORIGIN</span>
+                  <span className={styles.storyCardTag}>CURIOSITY & PASSION</span>
+                </div>
+                <h3 className={styles.storyCardTitle}>THE JOURNEY</h3>
+                <p className={styles.storyCardText}>
+                  My journey started with a curiosity for cameras, films and storytelling. What began as an interest in creating visuals gradually became a deeper passion for filmmaking, editing and understanding how a simple idea can be transformed into a story people can feel.
+                </p>
+                <div className={styles.storyCardFooter}>
+                  <span className={styles.storyKeyword}>Curiosity</span>
+                  <span className={styles.storyBullet}>•</span>
+                  <span className={styles.storyKeyword}>Filmmaking</span>
+                  <span className={styles.storyBullet}>•</span>
+                  <span className={styles.storyKeyword}>Emotion</span>
+                </div>
+              </div>
+
+              {/* Card 2: Visual Storytelling & Evolution */}
+              <div className={styles.storyCard} data-tilt>
+                <div className={styles.storyCardHeader}>
+                  <span className={styles.storyCardIndex}>// 02 EVOLUTION</span>
+                  <span className={styles.storyCardTag}>CRAFT & MASTERY</span>
+                </div>
+                <h3 className={styles.storyCardTitle}>VISUAL STORYTELLING</h3>
+                <p className={styles.storyCardText}>
+                  Over time, I’ve explored different forms of visual storytelling—from shooting and editing content to experimenting with cinematography, photography, creative direction and short-form media. Every project has helped me develop my own visual language and understand what makes a frame meaningful.
+                </p>
+                <div className={styles.storyCardFooter}>
+                  <span className={styles.storyKeyword}>Cinematography</span>
+                  <span className={styles.storyBullet}>•</span>
+                  <span className={styles.storyKeyword}>Direction</span>
+                  <span className={styles.storyBullet}>•</span>
+                  <span className={styles.storyKeyword}>Meaningful Frames</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Featured Showcase: MY APPROACH */}
+            <div className={styles.approachSection}>
+              <div className={styles.approachGlow} aria-hidden="true" />
+              <div className={styles.approachCard}>
+                <div className={styles.approachHeader}>
+                  <div className={styles.approachBadgeRow}>
+                    <span className={styles.approachPulseDot} />
+                    <span className={styles.approachBadgeText}>CREATIVE PHILOSOPHY</span>
+                  </div>
+                  <h2 className={styles.approachHeading}>MY APPROACH</h2>
+                </div>
+
+                <blockquote className={styles.approachQuote}>
+                  “I believe good visuals are more than just beautiful frames. They should have a mood, a purpose and a story. I focus on combining cinematic visuals, strong composition, sound and editing to create content that connects.”
+                </blockquote>
+
+                {/* 4 Core Pillars of the Approach */}
+                <div className={styles.approachPillars}>
+                  <div className={styles.pillarItem}>
+                    <div className={styles.pillarIcon}>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                        <path d="M2 12h20" />
+                      </svg>
+                    </div>
+                    <h4 className={styles.pillarTitle}>Mood & Atmosphere</h4>
+                    <p className={styles.pillarDesc}>
+                      Intentional lighting, tone and color science that give every frame a distinct emotional presence.
+                    </p>
+                  </div>
+
+                  <div className={styles.pillarItem}>
+                    <div className={styles.pillarIcon}>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M2 12h20" />
+                        <path d="M20 12l-4-4m4 4l-4 4" />
+                        <circle cx="6" cy="12" r="3" />
+                      </svg>
+                    </div>
+                    <h4 className={styles.pillarTitle}>Purposeful Story</h4>
+                    <p className={styles.pillarDesc}>
+                      Transforming simple concepts into meaningful stories with strong narrative intent that viewers remember.
+                    </p>
+                  </div>
+
+                  <div className={styles.pillarItem}>
+                    <div className={styles.pillarIcon}>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                      </svg>
+                    </div>
+                    <h4 className={styles.pillarTitle}>Sound & Editing Rhythm</h4>
+                    <p className={styles.pillarDesc}>
+                      Harmonizing cinematography, pacing, transitions, and audio design to build seamless kinetic flow.
+                    </p>
+                  </div>
+
+                  <div className={styles.pillarItem}>
+                    <div className={styles.pillarIcon}>
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                    </div>
+                    <h4 className={styles.pillarTitle}>Human Connection</h4>
+                    <p className={styles.pillarDesc}>
+                      Going beyond visual aesthetic to evoke genuine feeling and create lasting resonance with the audience.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Credentials Stats Row (2+ Years Exp, 100+ Videos, 5+ Brands) */}
+                <div className={styles.bottomStatsRow}>
+                  {stats.map((stat, idx) => (
+                    <div key={idx} className={styles.bottomStatItem}>
+                      <div className={styles.bottomStatDivider} aria-hidden="true" />
+                      <div className={styles.bottomStatInfo}>
+                        <span className={styles.bottomStatNumber}>{stat.number}</span>
+                        <span className={styles.bottomStatLabel}>
+                          {stat.labelLine1}
+                          <br />
+                          {stat.labelLine2}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bottom CTA within the card */}
+                <div className={styles.approachCta}>
+                  <div className={styles.ctaText}>
+                    <span className={styles.ctaTagline}>HAVE A STORY TO TELL?</span>
+                    <span className={styles.ctaSub}>
+                      Let’s collaborate on your next film, commercial, or creative visual project.
+                    </span>
+                  </div>
+                  <Link to="/contact" className={styles.approachBtn} data-magnetic>
+                    <span>GET IN TOUCH</span>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M7 17L17 7" />
+                      <path d="M7 7h10v10" />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

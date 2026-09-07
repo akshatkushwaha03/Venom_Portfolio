@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import MobileMenu from '../MobileMenu';
 import styles from './Header.module.css';
 
@@ -7,6 +7,12 @@ export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const location = useLocation();
+
+  // On pages other than the home page hero (e.g., /about, /work, /services, /contact),
+  // the page background is dark, so the navbar elements must be white.
+  const isHomePage = location.pathname === '/';
+  const isDarkNav = !isHomePage || isScrolled;
 
   useEffect(() => {
     // Reveal animation
@@ -23,6 +29,11 @@ export const Header = () => {
     };
   }, []);
 
+  // Close mobile drawer on route transition
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const navLinks = [
     { label: 'ABOUT', to: '/about' },
     { label: 'WORK', to: '/work' },
@@ -35,6 +46,7 @@ export const Header = () => {
       <header
         className={`
           ${styles.header}
+          ${isDarkNav ? styles.headerDark : ''}
           ${isScrolled ? styles.headerScrolled : ''}
           ${mobileMenuOpen ? styles.headerMenuOpen : ''}
         `}
