@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { uploadMediaFile } from '@/services/api';
 import styles from './Admin.module.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api`
+  : '/api';
 
 const DEFAULT_CATEGORIES = [
   'Personal Projects',
@@ -57,8 +59,10 @@ export const Admin = () => {
 
   // Check Auth on Mount & Fetch Projects
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     checkHealth();
     if (isAuthenticated) {
+      // eslint-disable-next-line react-hooks/immutability
       fetchProjects();
     }
   }, [isAuthenticated]);
