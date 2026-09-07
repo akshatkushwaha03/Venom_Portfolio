@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getProjects } from '@/services/api';
 import useInteractionLayer from '@/hooks/useInteractionLayer';
-import { useLiquidTransition } from '@/components/common/LiquidTransition';
 import styles from './Work.module.css';
 
 // Helper to parse video embed links (YouTube / Vimeo / Direct MP4)
@@ -27,17 +26,15 @@ const parseMediaSource = (url) => {
 
 export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
   useInteractionLayer();
-  const { navigateWithLiquid } = useLiquidTransition();
 
   const { categoryName } = useParams();
   const navigate = useNavigate();
 
-  const handleBack = (e) => {
-    const origin = e && typeof e.clientX === 'number' ? { x: e.clientX, y: e.clientY } : null;
+  const handleBack = () => {
     if (window.history.state && window.history.state.idx > 0) {
-      navigateWithLiquid(-1, { origin });
+      navigate(-1);
     } else {
-      navigateWithLiquid('/', { origin });
+      navigate('/');
     }
   };
 
@@ -189,7 +186,7 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                     className={styles.categoryCard}
                     data-tilt
                     data-magnetic
-                    onClick={(e) => navigateWithLiquid(`/work/${encodeURIComponent(cat.name)}`, { origin: { x: e.clientX, y: e.clientY } })}
+                    onClick={() => navigate(`/work/${encodeURIComponent(cat.name)}`)}
                   >
                     <div className={styles.catCardTop}>
                       <span className={styles.catIndex}>[{cat.id}]</span>
@@ -233,7 +230,7 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
               <button
                 type="button"
                 className={styles.backBtn}
-                onClick={(e) => navigateWithLiquid('/work', { origin: { x: e.clientX, y: e.clientY } })}
+                onClick={() => navigate('/work')}
               >
                 <span className={styles.backArrow}>←</span> ALL CATEGORIES
               </button>
@@ -315,7 +312,7 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                   </Link>
                   <button
                     type="button"
-                    onClick={(e) => navigateWithLiquid('/work', { origin: { x: e.clientX, y: e.clientY } })}
+                    onClick={() => navigate('/work')}
                     className={styles.backLinkBtn}
                   >
                     ← VIEW OTHER CATEGORIES

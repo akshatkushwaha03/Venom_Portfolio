@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import aboutPosterImg from '@/assets/images/about_poster.png';
 import styles from './About.module.css';
 
-// Optional creator photo: set to an image URL or import when ready
-export const About = ({ imageSrc = null, id = 'about', actionLink = null, isPreview = false }) => {
+// Default creator poster artwork imported from assets
+export const About = ({ imageSrc = aboutPosterImg, id = 'about', actionLink = null, isPreview = false }) => {
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -89,67 +90,50 @@ export const About = ({ imageSrc = null, id = 'about', actionLink = null, isPrev
 
         {/* Main Content Grid */}
         <div className={styles.grid}>
-          {/* Left Column: Visual Stage / Photo Frame */}
+          {/* Left Column: Visual Stage — Only the artwork PNG */}
           <div className={styles.visualCol}>
-            <div className={styles.photoWrapper}>
-              {/* Offset Dark Purple Geometric Accent Block (from reference photo) */}
-              <div className={styles.accentBackdropBlock} aria-hidden="true" />
-
-              {/* Photo Container / Placeholder Frame */}
-              <div
-                className={styles.photoCard}
-                data-tilt
-                data-cursor="card"
-                data-cursor-text="PORTRAIT"
-              >
-                {/* Viewfinder Crosshairs / Framing Corner Accents */}
-                <span className={`${styles.viewfinderCorner} ${styles.cornerTL}`} aria-hidden="true" />
-                <span className={`${styles.viewfinderCorner} ${styles.cornerTR}`} aria-hidden="true" />
-                <span className={`${styles.viewfinderCorner} ${styles.cornerBL}`} aria-hidden="true" />
-                <span className={`${styles.viewfinderCorner} ${styles.cornerBR}`} aria-hidden="true" />
-
-                {imageSrc ? (
-                  <img
-                    src={imageSrc}
-                    alt="Akshat — Cinematographer & Editor"
-                    className={styles.creatorImage}
-                    loading="lazy"
-                  />
-                ) : (
-                  /* Dedicated Space for Photo (as requested) */
-                  <div className={styles.photoPlaceholder}>
-                    <div className={styles.viewfinderReticle}>
-                      <svg
-                        className={styles.cameraIcon}
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                        <circle cx="12" cy="13" r="4" />
-                      </svg>
-                      <span className={styles.viewfinderPlus}>+</span>
-                    </div>
-
-                    <div className={styles.placeholderMeta}>
-                      <span className={styles.placeholderTitle}>PORTRAIT SPACE</span>
-                      <span className={styles.placeholderDesc}>
-                        Space reserved for photo
-                      </span>
-                    </div>
-
-                    <div className={styles.filmMetadata} aria-hidden="true">
-                      <span>ASPECT 4:5</span>
-                      <span>•</span>
-                      <span>RAW 35MM</span>
-                    </div>
+            <div className={styles.posterWrapper} data-tilt>
+              {imageSrc ? (
+                <img
+                  src={imageSrc}
+                  alt="VENOM — Akshat Kushwaha"
+                  className={styles.posterImage}
+                  loading="lazy"
+                />
+              ) : (
+                /* Fallback Placeholder Frame */
+                <div className={styles.photoPlaceholder}>
+                  <div className={styles.viewfinderReticle}>
+                    <svg
+                      className={styles.cameraIcon}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                    <span className={styles.viewfinderPlus}>+</span>
                   </div>
-                )}
-              </div>
+
+                  <div className={styles.placeholderMeta}>
+                    <span className={styles.placeholderTitle}>PORTRAIT SPACE</span>
+                    <span className={styles.placeholderDesc}>
+                      Space reserved for photo
+                    </span>
+                  </div>
+
+                  <div className={styles.filmMetadata} aria-hidden="true">
+                    <span>ASPECT 4:5</span>
+                    <span>•</span>
+                    <span>RAW 35MM</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
