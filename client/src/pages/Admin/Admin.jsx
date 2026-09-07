@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react';
-import { uploadMediaFile } from '@/services/api';
 import styles from './Admin.module.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api`
   : '/api';
 
-const DEFAULT_CATEGORIES = [
-  'Personal Projects',
-  'Commercials',
-  'Music Videos',
-  'Cinematography',
-  'Documentary',
-  'Fashion & Editorial',
-];
+const formatImageSrc = (url) => {
+  if (!url) return '';
+  const gdriveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
+  if (gdriveMatch && gdriveMatch[1]) {
+    return `https://drive.google.com/thumbnail?id=${gdriveMatch[1]}&sz=w1000`;
+  }
+  return url;
+};
 
 export const Admin = () => {
   // Passcode gate state
@@ -33,26 +32,18 @@ export const Admin = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState(null);
 
-  // Form input modes & files
-  const [videoInputMode, setVideoInputMode] = useState('file'); // 'file' | 'url'
-  const [imageInputMode, setImageInputMode] = useState('file'); // 'file' | 'url'
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategoryInput, setCustomCategoryInput] = useState('');
 
   const [formData, setFormData] = useState({
     description: '',
     url: '',
     thumbnailUrl: '',
-    category: 'Personal Projects',
+    category: '',
   });
-
-  const [videoFile, setVideoFile] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
-
-  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
-  const [imageUploadProgress, setImageUploadProgress] = useState(0);
 
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
-  const [uploadStatusText, setUploadStatusText] = useState('');
 
   // Filter state
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('All');
@@ -129,63 +120,57 @@ export const Admin = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleVideoFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setVideoFile(e.target.files[0]);
-    }
-  };
-
-  const handleImageFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImageFile(file);
-      // Generate immediate local preview URL
-      const localPreviewUrl = URL.createObjectURL(file);
-      setFormData((prev) => ({ ...prev, thumbnailUrl: localPreviewUrl }));
-    }
-  };
-
   const openCreateModal = () => {
     setEditingProjectId(null);
-    setFormData({
-      description: '',
-      url: '',
-      thumbnailUrl: '',
-      category: 'Personal Projects',
-    });
-    setVideoFile(null);
-    setImageFile(null);
-    setVideoUploadProgress(0);
-    setImageUploadProgress(0);
-    setVideoInputMode('file');
-    setImageInputMode('file');
+    if (categoriesPresent.length > 0) {
+      setFormData({
+        description: '',
+        url: '',
+        thumbnailUrl: '',
+        category: categoriesPresent[0],
+      });
+      setIsCustomCategory(false);
+      setCustomCategoryInput('');
+    } else {
+      setFormData({
+        description: '',
+        url: '',
+        thumbnailUrl: '',
+        category: '',
+      });
+      setIsCustomCategory(true);
+      setCustomCategoryInput('');
+    }
     setFormError('');
-    setUploadStatusText('');
     setIsModalOpen(true);
   };
 
   const openEditModal = (project) => {
     setEditingProjectId(project.id);
+    const projCat = project.category || '';
+    const isExisting = categoriesPresent.includes(projCat);
     setFormData({
       description: project.description || '',
       url: project.url || '',
       thumbnailUrl: project.thumbnailUrl || '',
-      category: project.category || 'Personal Projects',
+      category: projCat,
     });
-    setVideoFile(null);
-    setImageFile(null);
-    setVideoUploadProgress(0);
-    setImageUploadProgress(0);
-    setVideoInputMode('url');
-    setImageInputMode(project.thumbnailUrl ? 'url' : 'file');
+    if (isExisting) {
+      setIsCustomCategory(false);
+      setCustomCategoryInput('');
+    } else {
+      setIsCustomCategory(true);
+      setCustomCategoryInput(projCat);
+    }
     setFormError('');
-    setUploadStatusText('');
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProjectId(null);
+    setIsCustomCategory(false);
+    setCustomCategoryInput('');
   };
 
   // Submit Project (Create or Update)
@@ -198,54 +183,18 @@ export const Admin = () => {
       return;
     }
 
-    if (videoInputMode === 'url' && !formData.url.trim()) {
-      setFormError('Video / Project URL is required when using URL mode.');
-      return;
-    }
-
-    if (videoInputMode === 'file' && !videoFile && !formData.url) {
-      setFormError('Please select a video file to upload.');
+    if (!formData.url.trim()) {
+      setFormError('Video / Media URL (e.g. Google Drive link) is required.');
       return;
     }
 
     setFormSubmitting(true);
 
     try {
-      let finalVideoUrl = formData.url;
-      let finalThumbnailUrl = formData.thumbnailUrl;
-
-      // Step 1: Upload Video file if selected
-      if (videoInputMode === 'file' && videoFile) {
-        setUploadStatusText('Uploading video to Supabase storage...');
-        const videoUploadRes = await uploadMediaFile(videoFile, 'video', (percent) => {
-          setVideoUploadProgress(percent);
-        });
-        if (videoUploadRes.success && videoUploadRes.url) {
-          finalVideoUrl = videoUploadRes.url;
-        } else {
-          throw new Error('Failed to upload video file.');
-        }
-      }
-
-      // Step 2: Upload Image file if selected
-      if (imageInputMode === 'file' && imageFile) {
-        setUploadStatusText('Uploading thumbnail image to Supabase storage...');
-        const imageUploadRes = await uploadMediaFile(imageFile, 'image', (percent) => {
-          setImageUploadProgress(percent);
-        });
-        if (imageUploadRes.success && imageUploadRes.url) {
-          finalThumbnailUrl = imageUploadRes.url;
-        } else {
-          throw new Error('Failed to upload thumbnail image file.');
-        }
-      }
-
-      setUploadStatusText('Saving project record to database...');
-
       const payload = {
         description: formData.description.trim(),
-        url: finalVideoUrl,
-        thumbnailUrl: finalThumbnailUrl || null,
+        url: formData.url.trim(),
+        thumbnailUrl: formData.thumbnailUrl.trim() || null,
         category: formData.category,
       };
 
@@ -276,7 +225,6 @@ export const Admin = () => {
       setFormError(err.message || 'Server error while saving project.');
     } finally {
       setFormSubmitting(false);
-      setUploadStatusText('');
     }
   };
 
@@ -303,13 +251,15 @@ export const Admin = () => {
     }
   };
 
+  const categoriesPresent = Array.from(
+    new Set(projects.map((p) => p.category).filter((c) => c && c.trim().length > 0))
+  );
+
   // Filtered Projects
   const filteredProjects = projects.filter((p) => {
     if (activeCategoryFilter === 'All') return true;
     return p.category === activeCategoryFilter;
   });
-
-  const categoriesPresent = Array.from(new Set(projects.map((p) => p.category)));
 
   // PASSCODE LOCK SCREEN
   if (!isAuthenticated) {
@@ -410,8 +360,8 @@ export const Admin = () => {
           </div>
 
           <div className={styles.statCard}>
-            <span className={styles.statVal}>SUPABASE</span>
-            <span className={styles.statLbl}>POSTGRES & STORAGE</span>
+            <span className={styles.statVal}>DATABASE</span>
+            <span className={styles.statLbl}>POSTGRES & GDRIVE LINKS</span>
           </div>
         </div>
 
@@ -419,7 +369,7 @@ export const Admin = () => {
         <div className={styles.filterBar}>
           <span className={styles.filterTitle}>FILTER CATEGORY:</span>
           <div className={styles.pillList}>
-            {['All', ...DEFAULT_CATEGORIES].map((cat) => (
+            {['All', ...categoriesPresent].map((cat) => (
               <button
                 key={cat}
                 type="button"
@@ -460,7 +410,7 @@ export const Admin = () => {
                       <div className={styles.thumbWrapper}>
                         {p.thumbnailUrl ? (
                           <img
-                            src={p.thumbnailUrl}
+                            src={formatImageSrc(p.thumbnailUrl)}
                             alt="Project thumbnail"
                             className={styles.thumbImg}
                             onError={(e) => {
@@ -481,14 +431,9 @@ export const Admin = () => {
                       <p className={styles.descText}>{p.description}</p>
                     </td>
                     <td>
-                      <a
-                        href={p.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.urlLink}
-                      >
-                        OPEN MEDIA ↗
-                      </a>
+                      <span className={styles.urlBadge} title={p.url}>
+                        {p.url ? (p.url.includes('drive.google.com') ? 'GDRIVE LINK' : 'MEDIA LINK') : 'NO LINK'}
+                      </span>
                     </td>
                     <td>
                       <span className={styles.dateText}>
@@ -547,19 +492,66 @@ export const Admin = () => {
 
               {/* Category */}
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>CATEGORY</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className={styles.select}
-                >
-                  {DEFAULT_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                <label className={styles.fieldLabel}>CATEGORY *</label>
+                {categoriesPresent.length > 0 && !isCustomCategory ? (
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={(e) => {
+                      if (e.target.value === '__NEW__') {
+                        setIsCustomCategory(true);
+                        setCustomCategoryInput('');
+                        setFormData((prev) => ({ ...prev, category: '' }));
+                      } else {
+                        setIsCustomCategory(false);
+                        setFormData((prev) => ({ ...prev, category: e.target.value }));
+                      }
+                    }}
+                    className={styles.select}
+                  >
+                    {categoriesPresent.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                    <option value="__NEW__">+ CREATE NEW CUSTOM CATEGORY...</option>
+                  </select>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Type category name (e.g., Commercials, Music Videos, Cinematography...)"
+                      value={isCustomCategory ? customCategoryInput : formData.category}
+                      onChange={(e) => {
+                        setCustomCategoryInput(e.target.value);
+                        setFormData((prev) => ({ ...prev, category: e.target.value }));
+                      }}
+                      className={styles.input}
+                      required
+                      autoFocus
+                    />
+                    {categoriesPresent.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomCategory(false);
+                          setFormData((prev) => ({ ...prev, category: categoriesPresent[0] }));
+                        }}
+                        style={{
+                          marginTop: '6px',
+                          background: 'none',
+                          border: 'none',
+                          color: '#14b8a6',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                        }}
+                      >
+                        ← Choose existing category
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Description */}
@@ -576,137 +568,44 @@ export const Admin = () => {
                 />
               </div>
 
-              {/* VIDEO SECTION: FILE UPLOAD VS URL */}
-              <div className={styles.sectionBox}>
-                <div className={styles.sectionBoxHeader}>
-                  <label className={styles.fieldLabel}>VIDEO MEDIA *</label>
-                  <div className={styles.toggleGroup}>
-                    <button
-                      type="button"
-                      className={`${styles.toggleBtn} ${
-                        videoInputMode === 'file' ? styles.toggleBtnActive : ''
-                      }`}
-                      onClick={() => setVideoInputMode('file')}
-                    >
-                      📁 Upload File
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.toggleBtn} ${
-                        videoInputMode === 'url' ? styles.toggleBtnActive : ''
-                      }`}
-                      onClick={() => setVideoInputMode('url')}
-                    >
-                      🔗 Video URL
-                    </button>
-                  </div>
-                </div>
-
-                {videoInputMode === 'file' ? (
-                  <div className={styles.dropZone}>
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={handleVideoFileChange}
-                      className={styles.fileInput}
-                      id="videoFileInput"
-                    />
-                    <label htmlFor="videoFileInput" className={styles.dropZoneLabel}>
-                      <span className={styles.dropIcon}>🎥</span>
-                      {videoFile ? (
-                        <span className={styles.fileName}>{videoFile.name} ({(videoFile.size / (1024 * 1024)).toFixed(1)} MB)</span>
-                      ) : (
-                        <span>Click or drag a video file (.mp4, .mov, .webm)</span>
-                      )}
-                    </label>
-
-                    {videoUploadProgress > 0 && (
-                      <div className={styles.progressContainer}>
-                        <div className={styles.progressBar} style={{ width: `${videoUploadProgress}%` }} />
-                        <span className={styles.progressText}>Uploading video... {videoUploadProgress}%</span>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <input
-                    type="url"
-                    name="url"
-                    value={formData.url}
-                    onChange={handleInputChange}
-                    placeholder="https://vimeo.com/... or https://youtube.com/... or Supabase video link"
-                    className={styles.input}
-                  />
-                )}
+              {/* VIDEO URL INPUT */}
+              <div className={styles.field}>
+                <label className={styles.fieldLabel}>VIDEO / MEDIA URL *</label>
+                <input
+                  type="url"
+                  name="url"
+                  value={formData.url}
+                  onChange={handleInputChange}
+                  placeholder="e.g. https://drive.google.com/file/d/... or YouTube / Vimeo link"
+                  className={styles.input}
+                  required
+                />
+                <p className={styles.fieldNote}>
+                  💡 Google Drive Link Support: Ensure your GDrive file sharing permission is set to <strong>"Anyone with the link can view"</strong>.
+                </p>
               </div>
 
-              {/* THUMBNAIL IMAGE SECTION: FILE UPLOAD VS URL */}
-              <div className={styles.sectionBox}>
-                <div className={styles.sectionBoxHeader}>
-                  <label className={styles.fieldLabel}>THUMBNAIL IMAGE (OPTIONAL)</label>
-                  <div className={styles.toggleGroup}>
-                    <button
-                      type="button"
-                      className={`${styles.toggleBtn} ${
-                        imageInputMode === 'file' ? styles.toggleBtnActive : ''
-                      }`}
-                      onClick={() => setImageInputMode('file')}
-                    >
-                      🖼 Upload Image
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.toggleBtn} ${
-                        imageInputMode === 'url' ? styles.toggleBtnActive : ''
-                      }`}
-                      onClick={() => setImageInputMode('url')}
-                    >
-                      🔗 Image URL
-                    </button>
-                  </div>
-                </div>
-
-                {imageInputMode === 'file' ? (
-                  <div className={styles.dropZone}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageFileChange}
-                      className={styles.fileInput}
-                      id="imageFileInput"
-                    />
-                    <label htmlFor="imageFileInput" className={styles.dropZoneLabel}>
-                      <span className={styles.dropIcon}>📷</span>
-                      {imageFile ? (
-                        <span className={styles.fileName}>{imageFile.name}</span>
-                      ) : (
-                        <span>Click or drag a poster image file (.png, .jpg, .webp)</span>
-                      )}
-                    </label>
-
-                    {imageUploadProgress > 0 && (
-                      <div className={styles.progressContainer}>
-                        <div className={styles.progressBar} style={{ width: `${imageUploadProgress}%` }} />
-                        <span className={styles.progressText}>Uploading image... {imageUploadProgress}%</span>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <input
-                    type="url"
-                    name="thumbnailUrl"
-                    value={formData.thumbnailUrl}
-                    onChange={handleInputChange}
-                    placeholder="https://images.unsplash.com/... or image web link"
-                    className={styles.input}
-                  />
-                )}
+              {/* THUMBNAIL IMAGE URL INPUT */}
+              <div className={styles.field}>
+                <label className={styles.fieldLabel}>THUMBNAIL IMAGE URL (OPTIONAL)</label>
+                <input
+                  type="url"
+                  name="thumbnailUrl"
+                  value={formData.thumbnailUrl}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Google Drive image link or direct web image link"
+                  className={styles.input}
+                />
+                <p className={styles.fieldNote}>
+                  Paste Google Drive image link or any image web link for the poster preview.
+                </p>
 
                 {/* Live Preview */}
                 {formData.thumbnailUrl && (
                   <div className={styles.previewBox}>
                     <span className={styles.previewLabel}>THUMBNAIL PREVIEW:</span>
                     <img
-                      src={formData.thumbnailUrl}
+                      src={formatImageSrc(formData.thumbnailUrl)}
                       alt="Preview"
                       className={styles.previewImg}
                       onError={(e) => {
@@ -716,12 +615,6 @@ export const Admin = () => {
                   </div>
                 )}
               </div>
-
-              {uploadStatusText && (
-                <div className={styles.statusBox}>
-                  <span>{uploadStatusText}</span>
-                </div>
-              )}
 
               <div className={styles.modalFooter}>
                 <button type="button" onClick={closeModal} className={styles.cancelBtn}>
@@ -733,7 +626,7 @@ export const Admin = () => {
                   className={styles.submitBtn}
                 >
                   {formSubmitting
-                    ? 'UPLOADING & SAVING...'
+                    ? 'SAVING PROJECT...'
                     : editingProjectId
                     ? 'UPDATE PROJECT'
                     : 'PUBLISH PROJECT'}

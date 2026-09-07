@@ -4,9 +4,25 @@ import { getProjects } from '@/services/api';
 import useInteractionLayer from '@/hooks/useInteractionLayer';
 import styles from './Work.module.css';
 
-// Helper to parse video embed links (YouTube / Vimeo / Direct MP4)
+// Helper to transform Google Drive image URLs into embeddable thumbnail URLs
+export const formatImageSrc = (url) => {
+  if (!url) return '';
+  const gdriveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
+  if (gdriveMatch && gdriveMatch[1]) {
+    return `https://drive.google.com/thumbnail?id=${gdriveMatch[1]}&sz=w1000`;
+  }
+  return url;
+};
+
+// Helper to parse video embed links (Google Drive / YouTube / Vimeo / Direct MP4)
 const parseMediaSource = (url) => {
   if (!url) return { type: 'none', src: '' };
+
+  // Google Drive Video
+  const gdriveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
+  if (gdriveMatch && gdriveMatch[1]) {
+    return { type: 'iframe', src: `https://drive.google.com/file/d/${gdriveMatch[1]}/preview` };
+  }
 
   // YouTube
   const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
@@ -20,7 +36,7 @@ const parseMediaSource = (url) => {
     return { type: 'iframe', src: `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&title=0&byline=0&portrait=0` };
   }
 
-  // Direct MP4 / WebM or Supabase storage link
+  // Direct MP4 / WebM video link
   return { type: 'video', src: url };
 };
 
@@ -265,7 +281,7 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                     <div className={styles.thumbnailStage}>
                       {project.thumbnailUrl ? (
                         <img
-                          src={project.thumbnailUrl}
+                          src={formatImageSrc(project.thumbnailUrl)}
                           alt="Project thumbnail"
                           className={styles.thumbnailImg}
                           loading="lazy"
@@ -358,13 +374,16 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                 const source = parseMediaSource(activeVideoProject.url);
                 if (source.type === 'iframe') {
                   return (
-                    <iframe
-                      src={source.src}
-                      title={activeVideoProject.description}
-                      className={styles.iframePlayer}
-                      allow="autoplay; fullscreen; picture-in-picture"
-                      allowFullScreen
-                    />
+                    <>
+                      <iframe
+                        src={source.src}
+                        title={activeVideoProject.description}
+                        className={styles.iframePlayer}
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                      />
+                      <div className={styles.iframeTopShield} aria-hidden="true" />
+                    </>
                   );
                 }
 
@@ -375,7 +394,7 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                     autoPlay
                     playsInline
                     className={styles.htmlVideoPlayer}
-                    poster={activeVideoProject.thumbnailUrl}
+                    poster={formatImageSrc(activeVideoProject.thumbnailUrl)}
                   >
                     Your browser does not support HTML5 video streaming.
                   </video>
@@ -385,16 +404,6 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
 
             <div className={styles.modalFooter}>
               <p className={styles.modalDesc}>{activeVideoProject.description}</p>
-              <div className={styles.modalActionRow}>
-                <a
-                  href={activeVideoProject.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.externalLinkBtn}
-                >
-                  OPEN ORIGINAL SOURCE ↗
-                </a>
-              </div>
             </div>
           </div>
         </div>

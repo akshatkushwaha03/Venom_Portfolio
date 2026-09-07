@@ -44,6 +44,20 @@ export async function getProjects(category) {
   }
 }
 
+/**
+ * Fetch distinct categories from database
+ */
+export async function getCategories() {
+  try {
+    const res = await fetch(`${API_BASE}/api/projects/categories`);
+    if (!res.ok) throw new Error(`HTTP status ${res.status}`);
+    const data = await res.json();
+    return data.data || [];
+  } catch (err) {
+    console.error('[API] Error fetching categories:', err);
+    return [];
+  }
+}
 
 /**
  * Fetch a single project by ID

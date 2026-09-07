@@ -219,11 +219,41 @@ async function getStorageStatus(req, res) {
   }
 }
 
+/**
+ * GET /api/projects/categories
+ * Get list of all distinct project categories stored in DB
+ */
+async function getCategories(req, res) {
+  try {
+    const rawCategories = await prisma.project.findMany({
+      select: { category: true },
+      distinct: ['category'],
+    });
+
+    const categories = rawCategories
+      .map((p) => p.category)
+      .filter((cat) => cat && cat.trim().length > 0);
+
+    return res.status(200).json({
+      success: true,
+      data: categories,
+    });
+  } catch (error) {
+    console.error('[PROJECTS CONTROLLER] Error fetching categories:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve categories',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+}
+
 module.exports = {
   getAllProjects,
   getProjectById,
   createProject,
   updateProject,
   deleteProject,
+  getCategories,
   getStorageStatus,
 };

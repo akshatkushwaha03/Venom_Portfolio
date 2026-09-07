@@ -17,6 +17,12 @@ router.get('/storage/status', projectController.getStorageStatus);
 router.get('/', projectController.getAllProjects);
 
 /**
+ * Get Distinct Categories
+ * GET /api/projects/categories
+ */
+router.get('/categories', projectController.getCategories);
+
+/**
  * Get Project by ID
  * GET /api/projects/:id
  */
