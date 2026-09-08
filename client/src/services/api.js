@@ -7,12 +7,12 @@ const getApiBase = () => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
   }
-  // If running locally in development without VITE_API_URL, target local backend port 3000
+  // If running locally in development without VITE_API_URL, target local backend port 5000
   if (
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ) {
-    return 'http://localhost:3000';
+    return 'http://localhost:5000';
   }
   return '';
 };
@@ -35,7 +35,7 @@ export async function checkServerHealth() {
     }
 
     if (!res || !res.ok) {
-      res = await fetch('http://localhost:3000/api/health', {
+      res = await fetch('http://localhost:5000/api/health', {
         headers: { Accept: 'application/json' },
       }).catch(() => null);
     }
@@ -99,12 +99,130 @@ export async function getProjectById(id) {
   return data.data;
 }
 
+export const getAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('venom_token');
+  }
+  return null;
+};
+
+export const setAuthToken = (token) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('venom_token', token);
+  }
+};
+
+export const removeAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('venom_token');
+  }
+};
+
+export const getAuthHeaders = () => {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+/**
+ * Login Admin with username and password
+ */
+export async function loginAdmin(username, password) {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ username, password }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.message || 'Login failed');
+  }
+
+  if (data.token) {
+    setAuthToken(data.token);
+  }
+  return data;
+}
+
+/**
+ * Verify current active user session
+ */
+export async function getMe() {
+  const token = getAuthToken();
+  if (!token) return null;
+
+  const res = await fetch(`${API_BASE}/api/auth/me`, {
+    headers: {
+      Accept: 'application/json',
+      ...getAuthHeaders(),
+    },
+  });
+
+  if (!res.ok) {
+    removeAuthToken();
+    return null;
+  }
+  const data = await res.json();
+  return data.user || null;
+}
+
+/**
+ * Update Admin Username/Password in Database
+ */
+export async function updateAdminCredentials(currentPassword, newUsername, newPassword) {
+  const res = await fetch(`${API_BASE}/api/auth/update-credentials`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({ currentPassword, newUsername, newPassword }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.message || 'Failed to update admin credentials');
+  }
+
+  if (data.token) {
+    setAuthToken(data.token);
+  }
+  return data;
+}
+
+/**
+ * Reset Admin Password & Optional Username using Master Recovery Key
+ */
+export async function resetAdminPassword(masterKey, newPassword, newUsername) {
+  const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ masterKey, newPassword, newUsername }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.message || 'Password reset failed');
+  }
+  return data;
+}
+
 /**
  * Delete a project by ID
  */
 export async function deleteProject(id) {
   const res = await fetch(`${API_BASE}/api/projects/${id}`, {
     method: 'DELETE',
+    headers: {
+      ...getAuthHeaders(),
+    },
   });
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}));
@@ -123,6 +241,7 @@ export async function reorderProjects(orderedIds) {
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      ...getAuthHeaders(),
     },
     body: JSON.stringify({ orderedIds }),
   });

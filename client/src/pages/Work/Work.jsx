@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getProjects, reorderProjects } from '@/services/api';
+import { getProjects, reorderProjects, getAuthToken } from '@/services/api';
 import useInteractionLayer from '@/hooks/useInteractionLayer';
 import styles from './Work.module.css';
 
@@ -80,11 +80,6 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Passcode gate modal state
-  const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
-  const [passcodePrompt, setPasscodePrompt] = useState('');
-  const [passcodeError, setPasscodeError] = useState('');
-
   const showToast = (text, type = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 3500);
@@ -150,36 +145,12 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
 
   // Handle entering reorder mode
   const handleStartReorder = () => {
-    const isAuth = sessionStorage.getItem('venom_admin_token') === 'authenticated';
+    const isAuth = Boolean(getAuthToken());
     if (isAuth) {
       setOrderedCategoryProjects([...categoryProjects]);
       setIsReorderMode(true);
     } else {
-      setIsPasscodeModalOpen(true);
-      setPasscodePrompt('');
-      setPasscodeError('');
-    }
-  };
-
-  const handleUnlockWithPasscode = (e) => {
-    e.preventDefault();
-    const entered = passcodePrompt.trim();
-    const activePass = localStorage.getItem('venom_admin_custom_passcode') || 'venom';
-    const masterKey = 'admin123';
-
-    if (
-      entered.toLowerCase() === activePass.toLowerCase() ||
-      entered === activePass ||
-      entered === masterKey
-    ) {
-      sessionStorage.setItem('venom_admin_token', 'authenticated');
-      setIsPasscodeModalOpen(false);
-      setPasscodePrompt('');
-      setOrderedCategoryProjects([...categoryProjects]);
-      setIsReorderMode(true);
-      showToast('Admin authorized: Reorder mode active.');
-    } else {
-      setPasscodeError('Invalid Admin Key. Enter "venom" or your custom password.');
+      navigate('/admin');
     }
   };
 
@@ -673,58 +644,7 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
         </div>
       )}
 
-      {/* =================================================================
-         PASSCODE GATE MODAL (To Unlock Reordering)
-         ================================================================= */}
-      {isPasscodeModalOpen && (
-        <div className={styles.passcodeOverlay} onClick={() => setIsPasscodeModalOpen(false)}>
-          <div className={styles.passcodeCard} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.passcodeHeader}>
-              <div className={styles.passcodeBadgeRow}>
-                <span className={styles.passcodeIcon}>🔒</span>
-                <span className={styles.passcodeBadge}>STUDIO ADMIN ACCESS</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsPasscodeModalOpen(false)}
-                className={styles.passcodeCloseBtn}
-              >
-                ✕
-              </button>
-            </div>
 
-            <h3 className={styles.passcodeTitle}>ENTER ADMIN KEY</h3>
-            <p className={styles.passcodeSub}>
-              Enter your studio passcode to arrange and customize video order for <strong>{currentCategoryMeta?.name}</strong>.
-            </p>
-
-            <form onSubmit={handleUnlockWithPasscode} className={styles.passcodeForm}>
-              <input
-                type="password"
-                value={passcodePrompt}
-                onChange={(e) => setPasscodePrompt(e.target.value)}
-                placeholder="Enter admin passcode (Default: venom)"
-                className={styles.passcodeInput}
-                autoFocus
-              />
-              {passcodeError && <p className={styles.passcodeErrorText}>{passcodeError}</p>}
-
-              <div className={styles.passcodeActions}>
-                <button
-                  type="button"
-                  onClick={() => setIsPasscodeModalOpen(false)}
-                  className={styles.cancelPasscodeBtn}
-                >
-                  CANCEL
-                </button>
-                <button type="submit" className={styles.submitPasscodeBtn}>
-                  UNLOCK & REORDER →
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Toast Notification */}
       {toastMessage && (

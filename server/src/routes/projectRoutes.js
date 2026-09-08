@@ -1,5 +1,6 @@
 const express = require('express');
 const projectController = require('../controllers/projectController');
+const { authenticateToken } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -27,26 +28,26 @@ router.get('/:id', projectController.getProjectById);
  * POST /api/projects
  * Body: { url (required), description (optional), thumbnailUrl (optional), category (optional, default: 'Personal Projects') }
  */
-router.post('/', projectController.createProject);
+router.post('/', authenticateToken, projectController.createProject);
 
 /**
  * Reorder Projects
  * PUT /api/projects/reorder
  * Body: { orderedIds: string[] } or { items: [{ id, order }] }
  */
-router.put('/reorder', projectController.reorderProjects);
+router.put('/reorder', authenticateToken, projectController.reorderProjects);
 
 /**
  * Update Project
  * PUT /api/projects/:id
  * Body: { url, description (optional), thumbnailUrl (optional), category (optional), order }
  */
-router.put('/:id', projectController.updateProject);
+router.put('/:id', authenticateToken, projectController.updateProject);
 
 /**
  * Delete Project
  * DELETE /api/projects/:id
  */
-router.delete('/:id', projectController.deleteProject);
+router.delete('/:id', authenticateToken, projectController.deleteProject);
 
 module.exports = router;

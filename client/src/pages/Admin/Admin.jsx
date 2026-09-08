@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
 import styles from './Admin.module.css';
+import {
+  loginAdmin,
+  getMe,
+  updateAdminCredentials,
+  resetAdminPassword,
+  getAuthHeaders,
+  removeAuthToken,
+} from '../../services/api';
 
 const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) {
@@ -11,7 +19,7 @@ const getApiBaseUrl = () => {
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ) {
-    return 'http://localhost:3000/api';
+    return 'http://localhost:5000/api';
   }
   return '/api';
 };
@@ -41,40 +49,30 @@ const formatImageSrc = (url) => {
   return trimmed;
 };
 
-const DEFAULT_PASSCODE = 'venom';
-const DEFAULT_SEC_QUESTION = 'What game inspired the Venom identity?';
-const DEFAULT_SEC_ANSWER = 'pubg';
-const MASTER_KEY = 'admin123';
-
-const getStoredPasscode = () => localStorage.getItem('venom_admin_custom_passcode') || DEFAULT_PASSCODE;
-const getStoredSecQuestion = () => localStorage.getItem('venom_admin_sec_question') || DEFAULT_SEC_QUESTION;
-const getStoredSecAnswer = () => localStorage.getItem('venom_admin_sec_answer') || DEFAULT_SEC_ANSWER;
-const isCustomPasscodeSet = () => Boolean(localStorage.getItem('venom_admin_custom_passcode'));
-
 export const Admin = () => {
-  // Passcode gate state
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem('venom_admin_token') === 'authenticated';
-  });
-  const [authView, setAuthView] = useState('login'); // 'login' | 'forgot'
-  const [passcode, setPasscode] = useState('');
-  const [showPasscode, setShowPasscode] = useState(false);
-  const [passcodeError, setPasscodeError] = useState('');
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authView, setAuthView] = useState('login'); // 'login' | 'reset'
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
-  // Forgot Passcode / Recovery State
-  const [recoveryAnswer, setRecoveryAnswer] = useState('');
-  const [newPasscode, setNewPasscode] = useState('');
-  const [confirmPasscode, setConfirmPasscode] = useState('');
-  const [recoveryError, setRecoveryError] = useState('');
+  // Password Reset State
+  const [masterKey, setMasterKey] = useState('');
+  const [newResetUsername, setNewResetUsername] = useState('');
+  const [newResetPassword, setNewResetPassword] = useState('');
+  const [confirmResetPassword, setConfirmResetPassword] = useState('');
+  const [resetError, setResetError] = useState('');
 
-  // Key Settings Modal State (Inside Admin)
+  // Key / Credentials Settings Modal State (Inside Admin)
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
   const [keyFormData, setKeyFormData] = useState({
-    currentPasscode: '',
-    newPasscode: '',
-    confirmNewPasscode: '',
-    secQuestion: getStoredSecQuestion(),
-    secAnswer: '',
+    currentPassword: '',
+    newUsername: '',
+    newPassword: '',
+    confirmNewPassword: '',
   });
   const [keyFormError, setKeyFormError] = useState('');
 
@@ -110,33 +108,37 @@ export const Admin = () => {
   const [reorderList, setReorderList] = useState([]);
   const [savingReorder, setSavingReorder] = useState(false);
 
-  // Check Auth on Mount & Fetch Projects
+  // Check Auth Session on Mount & Fetch Projects
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
     checkHealth();
-    if (isAuthenticated) {
-      // eslint-disable-next-line react-hooks/immutability
-      fetchProjects();
-    }
-  }, [isAuthenticated]);
+    const verifySession = async () => {
+      try {
+        const user = await getMe();
+        if (user) {
+          setIsAuthenticated(true);
+          fetchProjects();
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch {
+        setIsAuthenticated(false);
+      }
+    };
+    verifySession();
+  }, []);
 
   const checkHealth = async () => {
     try {
-      // 1. Try primary configured API URL
       let res = await fetch(`${API_BASE_URL}/health`).catch(() => null);
-
-      // 2. If running via proxy, try relative /api/health
       if (!res || !res.ok) {
         res = await fetch('/api/health').catch(() => null);
       }
-
-      // 3. Fallback to direct localhost port 3000 if in local browser
       if (
         (!res || !res.ok) &&
         typeof window !== 'undefined' &&
         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ) {
-        res = await fetch('http://localhost:3000/api/health').catch(() => null);
+        res = await fetch('http://localhost:5000/api/health').catch(() => null);
       }
 
       if (res && res.ok) {
@@ -154,142 +156,114 @@ export const Admin = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Authenticate Passcode
-  const handleLogin = (e) => {
+  // Authenticate Admin User
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const entered = passcode.trim();
-    const activePasscode = getStoredPasscode();
+    setLoginError('');
 
-    if (
-      entered.toLowerCase() === activePasscode.toLowerCase() ||
-      entered === activePasscode ||
-      entered === MASTER_KEY
-    ) {
-      sessionStorage.setItem('venom_admin_token', 'authenticated');
+    if (!username.trim() || !password.trim()) {
+      setLoginError('Please enter both username and password.');
+      return;
+    }
+
+    setAuthSubmitting(true);
+    try {
+      await loginAdmin(username.trim(), password);
       setIsAuthenticated(true);
-      setPasscodeError('');
+      setLoginError('');
       showToast('Welcome back, Admin.');
-    } else {
-      setPasscodeError('Invalid Admin Key. Enter your passcode or click "Forgot Passcode?" below.');
+      fetchProjects();
+    } catch (err) {
+      setLoginError(err.message || 'Invalid username or password.');
+    } finally {
+      setAuthSubmitting(false);
     }
   };
 
-  // Handle Forgot Passcode / Reset Key
-  const handleResetPasscode = (e) => {
+  // Reset Admin Password using Master Key
+  const handleResetPassword = async (e) => {
     e.preventDefault();
-    setRecoveryError('');
+    setResetError('');
 
-    const correctAns = getStoredSecAnswer().trim().toLowerCase();
-    const enteredAns = recoveryAnswer.trim().toLowerCase();
-
-    if (enteredAns !== correctAns && recoveryAnswer.trim() !== MASTER_KEY) {
-      setRecoveryError('Incorrect security answer or master recovery key.');
+    if (!masterKey.trim()) {
+      setResetError('Master recovery key is required.');
       return;
     }
 
-    if (!newPasscode.trim() || newPasscode.trim().length < 3) {
-      setRecoveryError('New passcode must be at least 3 characters long.');
+    if (!newResetPassword.trim() || newResetPassword.trim().length < 3) {
+      setResetError('New password must be at least 3 characters long.');
       return;
     }
 
-    if (newPasscode.trim() !== confirmPasscode.trim()) {
-      setRecoveryError('New passcodes do not match.');
+    if (newResetPassword.trim() !== confirmResetPassword.trim()) {
+      setResetError('Passwords do not match.');
       return;
     }
 
-    localStorage.setItem('venom_admin_custom_passcode', newPasscode.trim());
-    sessionStorage.setItem('venom_admin_token', 'authenticated');
-    setIsAuthenticated(true);
-    setAuthView('login');
-    setPasscode('');
-    setRecoveryAnswer('');
-    setNewPasscode('');
-    setConfirmPasscode('');
-    showToast('Passcode updated successfully! Welcome to the Admin Portal.');
+    setAuthSubmitting(true);
+    try {
+      const res = await resetAdminPassword(
+        masterKey.trim(),
+        newResetPassword.trim(),
+        newResetUsername.trim()
+      );
+      showToast(res.message || 'Credentials reset successfully! Please log in.');
+      setAuthView('login');
+      if (res.user && res.user.username) {
+        setUsername(res.user.username);
+      }
+      setPassword(newResetPassword.trim());
+      setMasterKey('');
+      setNewResetUsername('');
+      setNewResetPassword('');
+      setConfirmResetPassword('');
+      setResetError('');
+    } catch (err) {
+      setResetError(err.message || 'Password reset failed.');
+    } finally {
+      setAuthSubmitting(false);
+    }
   };
 
-  // Quick reset to default 'venom'
-  const handleQuickResetToDefault = () => {
-    const correctAns = getStoredSecAnswer().trim().toLowerCase();
-    const enteredAns = recoveryAnswer.trim().toLowerCase();
-
-    if (enteredAns !== correctAns && recoveryAnswer.trim() !== MASTER_KEY) {
-      setRecoveryError('Please enter the correct security answer or master key first to reset.');
-      return;
-    }
-
-    localStorage.removeItem('venom_admin_custom_passcode');
-    localStorage.removeItem('venom_admin_sec_question');
-    localStorage.removeItem('venom_admin_sec_answer');
-    sessionStorage.setItem('venom_admin_token', 'authenticated');
-    setIsAuthenticated(true);
-    setAuthView('login');
-    setPasscode('');
-    setRecoveryAnswer('');
-    setNewPasscode('');
-    setConfirmPasscode('');
-    showToast('Passcode reset to default: "venom".');
-  };
-
-  // Update passcode inside dashboard
-  const handleUpdateKeySettings = (e) => {
+  // Update Credentials (Username & Password in DB)
+  const handleUpdateKeySettings = async (e) => {
     e.preventDefault();
     setKeyFormError('');
 
-    const activePass = getStoredPasscode();
-    const enteredCurrent = keyFormData.currentPasscode.trim();
-
-    if (
-      enteredCurrent.toLowerCase() !== activePass.toLowerCase() &&
-      enteredCurrent !== activePass &&
-      enteredCurrent !== MASTER_KEY
-    ) {
-      setKeyFormError('Current passcode is incorrect.');
+    if (!keyFormData.currentPassword) {
+      setKeyFormError('Current password is required to save changes.');
       return;
     }
 
-    if (!keyFormData.newPasscode.trim() || keyFormData.newPasscode.trim().length < 3) {
-      setKeyFormError('New passcode must be at least 3 characters long.');
+    if (keyFormData.newPassword && keyFormData.newPassword !== keyFormData.confirmNewPassword) {
+      setKeyFormError('New passwords do not match.');
       return;
     }
 
-    if (keyFormData.newPasscode.trim() !== keyFormData.confirmNewPasscode.trim()) {
-      setKeyFormError('New passcodes do not match.');
-      return;
+    try {
+      const res = await updateAdminCredentials(
+        keyFormData.currentPassword,
+        keyFormData.newUsername,
+        keyFormData.newPassword
+      );
+
+      showToast(res.message || 'Admin credentials updated successfully!');
+      setIsKeyModalOpen(false);
+      setKeyFormData({
+        currentPassword: '',
+        newUsername: '',
+        newPassword: '',
+        confirmNewPassword: '',
+      });
+    } catch (err) {
+      setKeyFormError(err.message || 'Failed to update admin credentials.');
     }
-
-    localStorage.setItem('venom_admin_custom_passcode', keyFormData.newPasscode.trim());
-
-    if (keyFormData.secAnswer.trim()) {
-      localStorage.setItem('venom_admin_sec_question', keyFormData.secQuestion);
-      localStorage.setItem('venom_admin_sec_answer', keyFormData.secAnswer.trim());
-    }
-
-    showToast('Upload & Admin passcode updated successfully!');
-    setIsKeyModalOpen(false);
-    setKeyFormData({
-      currentPasscode: '',
-      newPasscode: '',
-      confirmNewPasscode: '',
-      secQuestion: getStoredSecQuestion(),
-      secAnswer: '',
-    });
-  };
-
-  const handleResetToDefaultInModal = () => {
-    if (!window.confirm('Reset upload & admin passcode back to default "venom"?')) {
-      return;
-    }
-    localStorage.removeItem('venom_admin_custom_passcode');
-    localStorage.removeItem('venom_admin_sec_question');
-    localStorage.removeItem('venom_admin_sec_answer');
-    showToast('Passcode reset to default: "venom".');
-    setIsKeyModalOpen(false);
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('venom_admin_token');
+    removeAuthToken();
     setIsAuthenticated(false);
+    showToast('Logged out successfully.');
   };
 
   // Fetch projects from backend
@@ -305,7 +279,7 @@ export const Admin = () => {
         typeof window !== 'undefined' &&
         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ) {
-        res = await fetch('http://localhost:3000/api/projects').catch(() => null);
+        res = await fetch('http://localhost:5000/api/projects').catch(() => null);
       }
 
       if (res && res.ok) {
@@ -413,7 +387,10 @@ export const Admin = () => {
 
       const res = await fetch(endpoint, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify(payload),
       });
 
@@ -445,6 +422,9 @@ export const Admin = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/projects/${id}`, {
         method: 'DELETE',
+        headers: {
+          ...getAuthHeaders(),
+        },
       });
       const data = await res.json();
       if (data.success) {
@@ -506,7 +486,10 @@ export const Admin = () => {
       const orderedIds = reorderList.map((p) => p.id);
       const res = await fetch(`${API_BASE_URL}/projects/reorder`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify({ orderedIds }),
       });
       const data = await res.json();
@@ -538,7 +521,7 @@ export const Admin = () => {
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
-  // PASSCODE LOCK SCREEN
+  // ADMIN LOGIN & RESET SCREEN
   if (!isAuthenticated) {
     return (
       <div className={styles.authContainer}>
@@ -554,61 +537,71 @@ export const Admin = () => {
 
               <h2 className={styles.authTitle}>STUDIO CONTROL ACCESS</h2>
               <p className={styles.authSubtitle}>
-                Enter your key to access project management, uploads, and distribution.
+                Enter your admin credentials to access project management, uploads, and distribution.
               </p>
 
               <form onSubmit={handleLogin} className={styles.authForm}>
                 <div className={styles.inputGroup}>
+                  <label htmlFor="username" className={styles.label}>
+                    USERNAME
+                  </label>
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Enter admin username"
+                    className={styles.input}
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
                   <div className={styles.labelRow}>
-                    <label htmlFor="passcode" className={styles.label}>
-                      ADMIN KEY / PASSCODE
+                    <label htmlFor="password" className={styles.label}>
+                      PASSWORD
                     </label>
                     <button
                       type="button"
-                      onClick={() => setShowPasscode((prev) => !prev)}
+                      onClick={() => setShowPassword((prev) => !prev)}
                       className={styles.toggleVisibilityBtn}
                     >
-                      {showPasscode ? 'Hide' : 'Show'}
+                      {showPassword ? 'Hide' : 'Show'}
                     </button>
                   </div>
                   <input
-                    id="passcode"
-                    type={showPasscode ? 'text' : 'password'}
-                    value={passcode}
-                    onChange={(e) => setPasscode(e.target.value)}
-                    placeholder={
-                      isCustomPasscodeSet()
-                        ? 'Enter your custom admin key'
-                        : 'Enter passcode (Default: venom)'
-                    }
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter admin password"
                     className={styles.input}
-                    autoFocus
+                    required
                   />
                   <button
                     type="button"
                     onClick={() => {
-                      setAuthView('forgot');
-                      setPasscodeError('');
-                      setRecoveryError('');
+                      setAuthView('reset');
+                      setLoginError('');
+                      setResetError('');
                     }}
                     className={styles.forgotBtn}
                   >
-                    Forgot Passcode?
+                    Forgot Password?
                   </button>
                 </div>
 
-                {passcodeError && <p className={styles.errorMessage}>{passcodeError}</p>}
+                {loginError && <p className={styles.errorMessage}>{loginError}</p>}
 
-                <button type="submit" className={styles.authBtn} data-magnetic>
-                  UNLOCK DASHBOARD →
+                <button type="submit" className={styles.authBtn} disabled={authSubmitting} data-magnetic>
+                  {authSubmitting ? 'AUTHENTICATING...' : 'UNLOCK DASHBOARD →'}
                 </button>
               </form>
 
               <div className={styles.authFootnoteBox}>
                 <span className={styles.authFootnoteStatus}>
-                  {isCustomPasscodeSet()
-                    ? '🔒 Custom upload passcode active'
-                    : '🔑 Default key: venom'}
+                  🔒 Secure DB-backed JWT Authentication
                 </span>
               </div>
             </>
@@ -618,30 +611,25 @@ export const Admin = () => {
                 <span className={styles.authBrand}>
                   VENOM<span className={styles.dot}>.</span>
                 </span>
-                <span className={styles.authBadge}>KEY RECOVERY</span>
+                <span className={styles.authBadge}>PASSWORD RESET</span>
               </div>
 
-              <h2 className={styles.authTitle}>RECOVER ADMIN PASSCODE</h2>
+              <h2 className={styles.authTitle}>RESET ADMIN PASSWORD</h2>
               <p className={styles.authSubtitle}>
-                Answer your security question or enter the master recovery key to set a new passcode.
+                Enter your Master Recovery Key to reset your admin password in the database.
               </p>
 
-              <form onSubmit={handleResetPasscode} className={styles.authForm}>
-                <div className={styles.secQuestionBox}>
-                  <span className={styles.secQuestionLabel}>SECURITY QUESTION:</span>
-                  <p className={styles.secQuestionText}>{getStoredSecQuestion()}</p>
-                </div>
-
+              <form onSubmit={handleResetPassword} className={styles.authForm}>
                 <div className={styles.inputGroup}>
-                  <label htmlFor="recoveryAnswer" className={styles.label}>
-                    YOUR SECURITY ANSWER
+                  <label htmlFor="masterKey" className={styles.label}>
+                    MASTER RECOVERY KEY
                   </label>
                   <input
-                    id="recoveryAnswer"
-                    type="text"
-                    value={recoveryAnswer}
-                    onChange={(e) => setRecoveryAnswer(e.target.value)}
-                    placeholder="Enter answer (Default: pubg)"
+                    id="masterKey"
+                    type="password"
+                    value={masterKey}
+                    onChange={(e) => setMasterKey(e.target.value)}
+                    placeholder="Enter Master Recovery Key"
                     className={styles.input}
                     required
                     autoFocus
@@ -649,39 +637,53 @@ export const Admin = () => {
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="newPasscode" className={styles.label}>
-                    NEW PASSCODE
+                  <label htmlFor="newResetUsername" className={styles.label}>
+                    NEW USERNAME (OPTIONAL)
                   </label>
                   <input
-                    id="newPasscode"
+                    id="newResetUsername"
+                    type="text"
+                    value={newResetUsername}
+                    onChange={(e) => setNewResetUsername(e.target.value)}
+                    placeholder="Enter new admin username (leave blank to keep current)"
+                    className={styles.input}
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="newResetPassword" className={styles.label}>
+                    NEW PASSWORD
+                  </label>
+                  <input
+                    id="newResetPassword"
                     type="password"
-                    value={newPasscode}
-                    onChange={(e) => setNewPasscode(e.target.value)}
-                    placeholder="Enter new passcode (min. 3 characters)"
+                    value={newResetPassword}
+                    onChange={(e) => setNewResetPassword(e.target.value)}
+                    placeholder="Enter new password (min. 3 characters)"
                     className={styles.input}
                     required
                   />
                 </div>
 
                 <div className={styles.inputGroup}>
-                  <label htmlFor="confirmPasscode" className={styles.label}>
-                    CONFIRM NEW PASSCODE
+                  <label htmlFor="confirmResetPassword" className={styles.label}>
+                    CONFIRM NEW PASSWORD
                   </label>
                   <input
-                    id="confirmPasscode"
+                    id="confirmResetPassword"
                     type="password"
-                    value={confirmPasscode}
-                    onChange={(e) => setConfirmPasscode(e.target.value)}
-                    placeholder="Confirm new passcode"
+                    value={confirmResetPassword}
+                    onChange={(e) => setConfirmResetPassword(e.target.value)}
+                    placeholder="Confirm new password"
                     className={styles.input}
                     required
                   />
                 </div>
 
-                {recoveryError && <p className={styles.errorMessage}>{recoveryError}</p>}
+                {resetError && <p className={styles.errorMessage}>{resetError}</p>}
 
-                <button type="submit" className={styles.authBtn} data-magnetic>
-                  RESET PASSCODE & UNLOCK →
+                <button type="submit" className={styles.authBtn} disabled={authSubmitting} data-magnetic>
+                  {authSubmitting ? 'RESETTING...' : 'RESET PASSWORD & RETURN TO LOGIN →'}
                 </button>
 
                 <div className={styles.recoveryActions}>
@@ -689,19 +691,11 @@ export const Admin = () => {
                     type="button"
                     onClick={() => {
                       setAuthView('login');
-                      setRecoveryError('');
+                      setResetError('');
                     }}
                     className={styles.backBtnInline}
                   >
                     ← Back to Login
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleQuickResetToDefault}
-                    className={styles.resetDefaultLink}
-                    title="Reset passcode back to venom after typing answer"
-                  >
-                    Reset to default ("venom")
                   </button>
                 </div>
               </form>
@@ -748,20 +742,19 @@ export const Admin = () => {
               type="button"
               onClick={() => {
                 setKeyFormData({
-                  currentPasscode: '',
-                  newPasscode: '',
-                  confirmNewPasscode: '',
-                  secQuestion: getStoredSecQuestion(),
-                  secAnswer: '',
+                  currentPassword: '',
+                  newUsername: '',
+                  newPassword: '',
+                  confirmNewPassword: '',
                 });
                 setKeyFormError('');
                 setIsKeyModalOpen(true);
               }}
               className={styles.keySettingsBtn}
-              title="Change upload & admin password"
+              title="Change admin username & password"
             >
               <span>🔑</span>
-              <span>CHANGE PASSWORD</span>
+              <span>CHANGE CREDENTIALS</span>
             </button>
 
             <button type="button" onClick={handleLogout} className={styles.logoutBtn}>
@@ -1099,31 +1092,6 @@ export const Admin = () => {
                 )}
               </div>
 
-              {/* UPLOAD SECURITY KEY NOTE */}
-              <div className={styles.uploadSecurityPill}>
-                <span>
-                  🔒 Uploads protected by Admin Key ({isCustomPasscodeSet() ? 'Custom' : 'Default'})
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeModal();
-                    setKeyFormData({
-                      currentPasscode: '',
-                      newPasscode: '',
-                      confirmNewPasscode: '',
-                      secQuestion: getStoredSecQuestion(),
-                      secAnswer: '',
-                    });
-                    setKeyFormError('');
-                    setIsKeyModalOpen(true);
-                  }}
-                  className={styles.changeKeyInlineBtn}
-                >
-                  Change Password
-                </button>
-              </div>
-
               <div className={styles.modalFooter}>
                 <button type="button" onClick={closeModal} className={styles.cancelBtn}>
                   CANCEL
@@ -1145,12 +1113,12 @@ export const Admin = () => {
         </div>
       )}
 
-      {/* KEY SETTINGS MODAL */}
+      {/* ADMIN CREDENTIALS MODAL */}
       {isKeyModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsKeyModalOpen(false)}>
           <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>ADMIN & UPLOAD KEY SETTINGS</h3>
+              <h3 className={styles.modalTitle}>ADMIN CREDENTIAL SETTINGS</h3>
               <button
                 type="button"
                 onClick={() => setIsKeyModalOpen(false)}
@@ -1161,31 +1129,21 @@ export const Admin = () => {
             </div>
 
             <p className={styles.fieldNote} style={{ marginBottom: '16px' }}>
-              Configure the password required to log into the Admin portal and upload or manage projects.
+              Update the admin username or password stored securely in the database.
             </p>
-
-            <div
-              className={`${styles.statusNotice} ${
-                isCustomPasscodeSet() ? styles.statusNoticeActive : styles.statusNoticeDefault
-              }`}
-            >
-              {isCustomPasscodeSet()
-                ? '✓ A custom passcode is currently active for uploads and portal login.'
-                : '⚠️ Currently using default passcode ("venom"). We recommend setting your own custom key.'}
-            </div>
 
             {keyFormError && <div className={styles.formErrorBox}>{keyFormError}</div>}
 
             <form onSubmit={handleUpdateKeySettings} className={styles.modalForm}>
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>CURRENT PASSCODE *</label>
+                <label className={styles.fieldLabel}>CURRENT PASSWORD *</label>
                 <input
                   type="password"
-                  value={keyFormData.currentPasscode}
+                  value={keyFormData.currentPassword}
                   onChange={(e) =>
-                    setKeyFormData((prev) => ({ ...prev, currentPasscode: e.target.value }))
+                    setKeyFormData((prev) => ({ ...prev, currentPassword: e.target.value }))
                   }
-                  placeholder="Enter current passcode (Default: venom)"
+                  placeholder="Enter current password"
                   className={styles.input}
                   required
                   autoFocus
@@ -1193,83 +1151,45 @@ export const Admin = () => {
               </div>
 
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>NEW PASSCODE *</label>
-                <input
-                  type="password"
-                  value={keyFormData.newPasscode}
-                  onChange={(e) =>
-                    setKeyFormData((prev) => ({ ...prev, newPasscode: e.target.value }))
-                  }
-                  placeholder="Enter new custom passcode (min. 3 characters)"
-                  className={styles.input}
-                  required
-                />
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.fieldLabel}>CONFIRM NEW PASSCODE *</label>
-                <input
-                  type="password"
-                  value={keyFormData.confirmNewPasscode}
-                  onChange={(e) =>
-                    setKeyFormData((prev) => ({ ...prev, confirmNewPasscode: e.target.value }))
-                  }
-                  placeholder="Re-type new passcode"
-                  className={styles.input}
-                  required
-                />
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.fieldLabel}>SECURITY RECOVERY QUESTION</label>
-                <select
-                  value={keyFormData.secQuestion}
-                  onChange={(e) =>
-                    setKeyFormData((prev) => ({ ...prev, secQuestion: e.target.value }))
-                  }
-                  className={styles.select}
-                >
-                  <option value="What game inspired the Venom identity?">
-                    What game inspired the Venom identity?
-                  </option>
-                  <option value="What was your first project or film title?">
-                    What was your first project or film title?
-                  </option>
-                  <option value="What is your favorite camera or filmmaking tool?">
-                    What is your favorite camera or filmmaking tool?
-                  </option>
-                  <option value="What is your secret backup phrase?">
-                    What is your secret backup phrase?
-                  </option>
-                </select>
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.fieldLabel}>SECURITY ANSWER (FOR RECOVERY)</label>
+                <label className={styles.fieldLabel}>NEW USERNAME (OPTIONAL)</label>
                 <input
                   type="text"
-                  value={keyFormData.secAnswer}
+                  value={keyFormData.newUsername}
                   onChange={(e) =>
-                    setKeyFormData((prev) => ({ ...prev, secAnswer: e.target.value }))
+                    setKeyFormData((prev) => ({ ...prev, newUsername: e.target.value }))
                   }
-                  placeholder="Type answer to reset key if you ever forget it"
+                  placeholder="Enter new admin username"
                   className={styles.input}
                 />
-                <p className={styles.fieldNote}>
-                  💡 Used on the login screen if you ever click "Forgot Passcode?".
-                </p>
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.fieldLabel}>NEW PASSWORD (OPTIONAL)</label>
+                <input
+                  type="password"
+                  value={keyFormData.newPassword}
+                  onChange={(e) =>
+                    setKeyFormData((prev) => ({ ...prev, newPassword: e.target.value }))
+                  }
+                  placeholder="Enter new password (min. 3 characters)"
+                  className={styles.input}
+                />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.fieldLabel}>CONFIRM NEW PASSWORD</label>
+                <input
+                  type="password"
+                  value={keyFormData.confirmNewPassword}
+                  onChange={(e) =>
+                    setKeyFormData((prev) => ({ ...prev, confirmNewPassword: e.target.value }))
+                  }
+                  placeholder="Re-type new password"
+                  className={styles.input}
+                />
               </div>
 
               <div className={styles.modalFooter}>
-                {isCustomPasscodeSet() && (
-                  <button
-                    type="button"
-                    onClick={handleResetToDefaultInModal}
-                    className={styles.resetDangerBtn}
-                  >
-                    Reset to Default ("venom")
-                  </button>
-                )}
                 <button
                   type="button"
                   onClick={() => setIsKeyModalOpen(false)}
@@ -1278,7 +1198,7 @@ export const Admin = () => {
                   CANCEL
                 </button>
                 <button type="submit" className={styles.submitBtn}>
-                  SAVE NEW PASSCODE
+                  SAVE CREDENTIALS
                 </button>
               </div>
             </form>

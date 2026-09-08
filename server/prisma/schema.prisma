@@ -24,3 +24,15 @@ model Project {
 
   @@map("projects")
 }
+
+// Model for admin authentication
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
