@@ -1,9 +1,11 @@
 .page {
   position: relative;
   width: 100%;
+  max-width: 100%;
   min-height: 100vh;
   background-color: var(--bg-dark, #030d0c);
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .scrollProgressBar {
@@ -11,6 +13,7 @@
   top: 0;
   left: 0;
   height: 3px;
+  max-width: 100%;
   background: linear-gradient(90deg, #0d9488, #10b981, #06b6d4);
   z-index: 9999;
   box-shadow: 0 0 10px rgba(20, 184, 166, 0.8);
@@ -20,6 +23,8 @@
 .sectionWrapper {
   position: relative;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),

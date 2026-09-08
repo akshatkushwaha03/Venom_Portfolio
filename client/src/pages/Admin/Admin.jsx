@@ -19,12 +19,26 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 
 const formatImageSrc = (url) => {
-  if (!url) return '';
-  const gdriveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+
+  // Match all Google Drive link variations
+  const gdriveMatch = trimmed.match(
+    /(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=view&)?id=|thumbnail\?id=)|lh3\.googleusercontent\.com\/d\/)([\w-]+)/
+  );
   if (gdriveMatch && gdriveMatch[1]) {
     return `https://drive.google.com/thumbnail?id=${gdriveMatch[1]}&sz=w1000`;
   }
-  return url;
+
+  // Handle YouTube links pasted as thumbnails
+  const ytMatch = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+  );
+  if (ytMatch && ytMatch[1]) {
+    return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+  }
+
+  return trimmed;
 };
 
 const DEFAULT_PASSCODE = 'venom';
@@ -325,7 +339,7 @@ export const Admin = () => {
         description: '',
         url: '',
         thumbnailUrl: '',
-        category: categoriesPresent[0],
+        category: categoriesPresent[0] || 'Personal Projects',
       });
       setIsCustomCategory(false);
       setCustomCategoryInput('');
@@ -334,9 +348,9 @@ export const Admin = () => {
         description: '',
         url: '',
         thumbnailUrl: '',
-        category: '',
+        category: 'Personal Projects',
       });
-      setIsCustomCategory(true);
+      setIsCustomCategory(false);
       setCustomCategoryInput('');
     }
     setFormError('');
@@ -376,11 +390,6 @@ export const Admin = () => {
     e.preventDefault();
     setFormError('');
 
-    if (!formData.description.trim()) {
-      setFormError('Project description is required.');
-      return;
-    }
-
     if (!formData.url.trim()) {
       setFormError('Video / Media URL (e.g. Google Drive link) is required.');
       return;
@@ -389,11 +398,12 @@ export const Admin = () => {
     setFormSubmitting(true);
 
     try {
+      const finalCategory = (formData.category && formData.category.trim()) || 'Personal Projects';
       const payload = {
-        description: formData.description.trim(),
+        description: formData.description ? formData.description.trim() : '',
         url: formData.url.trim(),
         thumbnailUrl: formData.thumbnailUrl.trim() || null,
-        category: formData.category,
+        category: finalCategory,
       };
 
       const method = editingProjectId ? 'PUT' : 'POST';
@@ -850,22 +860,33 @@ export const Admin = () => {
                             src={formatImageSrc(p.thumbnailUrl)}
                             alt="Project thumbnail"
                             className={styles.thumbImg}
+                            referrerPolicy="no-referrer"
                             onError={(e) => {
                               e.target.style.display = 'none';
+                              const ph = e.target.parentElement?.querySelector(`.${styles.thumbPlaceholder}`);
+                              if (ph) ph.style.display = 'flex';
                             }}
                           />
-                        ) : (
-                          <div className={styles.thumbPlaceholder}>
-                            <span>VIDEO</span>
-                          </div>
-                        )}
+                        ) : null}
+                        <div
+                          className={styles.thumbPlaceholder}
+                          style={{ display: p.thumbnailUrl ? 'none' : 'flex' }}
+                        >
+                          <span>VIDEO</span>
+                        </div>
                       </div>
                     </td>
                     <td>
                       <span className={styles.catBadge}>{p.category}</span>
                     </td>
                     <td>
-                      <p className={styles.descText}>{p.description}</p>
+                      <p className={styles.descText}>
+                        {p.description || (
+                          <span style={{ color: 'rgba(255, 255, 255, 0.35)', fontStyle: 'italic' }}>
+                            No description
+                          </span>
+                        )}
+                      </p>
                     </td>
                     <td>
                       <span className={styles.urlBadge} title={p.url}>
@@ -929,7 +950,7 @@ export const Admin = () => {
 
               {/* Category */}
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>CATEGORY *</label>
+                <label className={styles.fieldLabel}>CATEGORY (OPTIONAL)</label>
                 {categoriesPresent.length > 0 && !isCustomCategory ? (
                   <select
                     name="category"
@@ -957,14 +978,13 @@ export const Admin = () => {
                   <div>
                     <input
                       type="text"
-                      placeholder="Type category name (e.g., Commercials, Music Videos, Cinematography...)"
+                      placeholder="Type category name (optional, defaults to 'Personal Projects')"
                       value={isCustomCategory ? customCategoryInput : formData.category}
                       onChange={(e) => {
                         setCustomCategoryInput(e.target.value);
                         setFormData((prev) => ({ ...prev, category: e.target.value }));
                       }}
                       className={styles.input}
-                      required
                       autoFocus
                     />
                     {categoriesPresent.length > 0 && (
@@ -972,7 +992,7 @@ export const Admin = () => {
                         type="button"
                         onClick={() => {
                           setIsCustomCategory(false);
-                          setFormData((prev) => ({ ...prev, category: categoriesPresent[0] }));
+                          setFormData((prev) => ({ ...prev, category: categoriesPresent[0] || 'Personal Projects' }));
                         }}
                         style={{
                           marginTop: '6px',
@@ -993,15 +1013,14 @@ export const Admin = () => {
 
               {/* Description */}
               <div className={styles.field}>
-                <label className={styles.fieldLabel}>DESCRIPTION *</label>
+                <label className={styles.fieldLabel}>DESCRIPTION (OPTIONAL)</label>
                 <textarea
                   name="description"
                   rows={3}
                   value={formData.description}
                   onChange={handleInputChange}
-                  placeholder="Cinematic commercial shot in 4K RAW for Nike Autumn campaign..."
+                  placeholder="Project description, equipment details, or notes (optional)..."
                   className={styles.textarea}
-                  required
                 />
               </div>
 
@@ -1034,7 +1053,9 @@ export const Admin = () => {
                   className={styles.input}
                 />
                 <p className={styles.fieldNote}>
-                  Paste Google Drive image link or any image web link for the poster preview.
+                  Paste Google Drive image link or any direct web image link for the poster preview.
+                  <br />
+                  💡 <strong>Important for Google Drive:</strong> The file sharing permission MUST be set to <strong>"Anyone with the link can view"</strong>, otherwise Google blocks the image from displaying.
                 </p>
 
                 {/* Live Preview */}
@@ -1045,10 +1066,35 @@ export const Admin = () => {
                       src={formatImageSrc(formData.thumbnailUrl)}
                       alt="Preview"
                       className={styles.previewImg}
+                      referrerPolicy="no-referrer"
                       onError={(e) => {
                         e.target.style.display = 'none';
+                        const errBox = document.getElementById('thumb-preview-error');
+                        if (errBox) errBox.style.display = 'block';
+                      }}
+                      onLoad={(e) => {
+                        e.target.style.display = 'block';
+                        const errBox = document.getElementById('thumb-preview-error');
+                        if (errBox) errBox.style.display = 'none';
                       }}
                     />
+                    <div
+                      id="thumb-preview-error"
+                      style={{
+                        display: 'none',
+                        color: '#fca5a5',
+                        fontSize: '0.8rem',
+                        marginTop: '8px',
+                        background: 'rgba(239, 68, 68, 0.12)',
+                        padding: '10px 14px',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      ⚠️ <strong>Thumbnail preview failed to load.</strong><br />
+                      If this is a Google Drive image, please ensure its sharing permission is set to <strong>"Anyone with the link can view"</strong> (in Google Drive: right-click image → <em>Share</em> → <em>General access</em> → <em>Anyone with the link</em>).
+                    </div>
                   </div>
                 )}
               </div>
@@ -1292,7 +1338,9 @@ export const Admin = () => {
                     )}
 
                     <div className={styles.reorderItemInfo}>
-                      <p className={styles.reorderItemTitle}>{item.description}</p>
+                      <p className={styles.reorderItemTitle}>
+                        {item.description || item.category || 'Untitled Project'}
+                      </p>
                     </div>
 
                     <div className={styles.reorderShiftBtns}>

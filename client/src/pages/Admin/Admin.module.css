@@ -1,14 +1,21 @@
 .adminPage {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
   background-color: var(--bg-dark, #060608);
   color: #ffffff;
   padding: 120px 24px 80px 24px;
   font-family: var(--font-sans, 'Poppins', sans-serif);
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* Auth Lock Screen */
@@ -322,7 +329,11 @@
   background: rgba(6, 24, 22, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .table {
@@ -1070,6 +1081,61 @@
   gap: 12px;
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* =================================================================
+   MOBILE RESPONSIVENESS & EQUIDISTANT GUTTERS
+   ================================================================= */
+@media (max-width: 767px) {
+  .adminPage {
+    padding: 84px 16px 40px 16px;
+    overflow-x: hidden;
+  }
+
+  .container {
+    width: 100%;
+    padding: 0;
+  }
+
+  .topHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .headerRight {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .filterBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .authContainer {
+    padding: 16px;
+  }
+
+  .authCard {
+    padding: 28px 18px;
+  }
 }
 
 

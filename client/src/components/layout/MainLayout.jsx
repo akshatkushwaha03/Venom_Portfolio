@@ -11,11 +11,11 @@ export const MainLayout = () => {
   useInteractionLayer();
 
   return (
-    <div className="app-layout" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#060608', color: '#fff' }}>
+    <div className="app-layout" style={{ minHeight: '100vh', width: '100%', maxWidth: '100%', overflowX: 'hidden', display: 'flex', flexDirection: 'column', backgroundColor: '#060608', color: '#fff' }}>
       <ScrollToTop />
       <CustomCursor />
       <Header />
-      <main style={{ flex: 1 }}>
+      <main style={{ flex: 1, width: '100%', maxWidth: '100%', overflowX: 'hidden' }}>
         <Outlet />
       </main>
       <Footer />

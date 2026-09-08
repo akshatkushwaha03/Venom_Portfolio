@@ -4,14 +4,28 @@ import { getProjects, reorderProjects } from '@/services/api';
 import useInteractionLayer from '@/hooks/useInteractionLayer';
 import styles from './Work.module.css';
 
-// Helper to transform Google Drive image URLs into embeddable thumbnail URLs
+// Helper to transform Google Drive / YouTube image URLs into embeddable thumbnail URLs
 export const formatImageSrc = (url) => {
-  if (!url) return '';
-  const gdriveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/);
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+
+  // Match all Google Drive link variations
+  const gdriveMatch = trimmed.match(
+    /(?:drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=view&)?id=|thumbnail\?id=)|lh3\.googleusercontent\.com\/d\/)([\w-]+)/
+  );
   if (gdriveMatch && gdriveMatch[1]) {
     return `https://drive.google.com/thumbnail?id=${gdriveMatch[1]}&sz=w1000`;
   }
-  return url;
+
+  // Handle YouTube links pasted as thumbnails
+  const ytMatch = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+  );
+  if (ytMatch && ytMatch[1]) {
+    return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+  }
+
+  return trimmed;
 };
 
 // Helper to parse video embed links (Google Drive / YouTube / Vimeo / Direct MP4)
@@ -517,13 +531,21 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                           alt="Project thumbnail"
                           className={styles.thumbnailImg}
                           loading="lazy"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            const ph = e.target.parentElement?.querySelector(`.${styles.placeholderStage}`);
+                            if (ph) ph.style.display = 'flex';
+                          }}
                         />
-                      ) : (
-                        <div className={styles.placeholderStage}>
-                          <span className={styles.playIconLarge}>▶</span>
-                          <span>WATCH FILM</span>
-                        </div>
-                      )}
+                      ) : null}
+                      <div
+                        className={styles.placeholderStage}
+                        style={{ display: project.thumbnailUrl ? 'none' : 'flex' }}
+                      >
+                        <span className={styles.playIconLarge}>▶</span>
+                        <span>WATCH FILM</span>
+                      </div>
 
                       {!isReorderMode && (
                         <div className={styles.stageOverlay}>
@@ -542,7 +564,9 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                         </span>
                       </div>
 
-                      <p className={styles.projectDesc}>{project.description}</p>
+                      {project.description && (
+                        <p className={styles.projectDesc}>{project.description}</p>
+                      )}
 
                       <div className={styles.projectActionRow}>
                         <span className={styles.watchText}>
@@ -590,7 +614,9 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
             <div className={styles.modalHeader}>
               <div className={styles.modalTitleBlock}>
                 <span className={styles.modalCatTag}>[{activeVideoProject.category}]</span>
-                <h3 className={styles.modalTitle}>{activeVideoProject.description}</h3>
+                <h3 className={styles.modalTitle}>
+                  {activeVideoProject.description || activeVideoProject.category || 'Featured Project'}
+                </h3>
               </div>
 
               <button
@@ -613,7 +639,7 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                     <>
                       <iframe
                         src={source.src}
-                        title={activeVideoProject.description}
+                        title={activeVideoProject.description || activeVideoProject.category || 'Project Video'}
                         className={styles.iframePlayer}
                         allow="autoplay; fullscreen; picture-in-picture"
                         allowFullScreen
@@ -638,9 +664,11 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
               })()}
             </div>
 
-            <div className={styles.modalFooter}>
-              <p className={styles.modalDesc}>{activeVideoProject.description}</p>
-            </div>
+            {activeVideoProject.description && (
+              <div className={styles.modalFooter}>
+                <p className={styles.modalDesc}>{activeVideoProject.description}</p>
+              </div>
+            )}
           </div>
         </div>
       )}

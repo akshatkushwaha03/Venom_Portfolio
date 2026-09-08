@@ -1,6 +1,7 @@
 .heroContainer {
   position: relative;
-  width: 100vw;
+  width: 100%;
+  max-width: 100%;
   height: 100vh;
   min-height: 640px;
   max-height: 1200px;
@@ -335,12 +336,16 @@
   }
 
   .posterStage {
-    padding: 12px;
+    padding: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .typographyLayer {
     top: 48%;
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
   }
 
   .characterLayer {
@@ -359,19 +364,19 @@
 
   .metaTopLeft {
     top: 76px;
-    left: 20px;
+    left: 16px;
     font-size: 0.65rem;
   }
 
   .metaTopRight {
     top: 76px;
-    right: 20px;
+    right: 16px;
     font-size: 0.65rem;
   }
 
   .metaBottomLeft {
     bottom: 24px;
-    left: 20px;
+    left: 16px;
   }
 
   .bottomRoleLine,

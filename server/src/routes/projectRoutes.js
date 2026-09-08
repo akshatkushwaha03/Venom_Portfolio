@@ -25,7 +25,7 @@ router.get('/:id', projectController.getProjectById);
 /**
  * Create Project
  * POST /api/projects
- * Body: { description, url, thumbnailUrl, category }
+ * Body: { url (required), description (optional), thumbnailUrl (optional), category (optional, default: 'Personal Projects') }
  */
 router.post('/', projectController.createProject);
 
@@ -39,7 +39,7 @@ router.put('/reorder', projectController.reorderProjects);
 /**
  * Update Project
  * PUT /api/projects/:id
- * Body: { description, url, thumbnailUrl, category, order }
+ * Body: { url, description (optional), thumbnailUrl (optional), category (optional), order }
  */
 router.put('/:id', projectController.updateProject);
 

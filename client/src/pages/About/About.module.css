@@ -17,10 +17,12 @@
 
   position: relative;
   width: 100%;
+  max-width: 100%;
   background-color: var(--about-bg);
   color: var(--about-text-white);
   padding: clamp(80px, 12vh, 150px) clamp(20px, 4vw, 64px);
-  overflow: clip;
+  overflow-x: hidden;
+  box-sizing: border-box;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -49,6 +51,7 @@
   width: 100%;
   max-width: 1380px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* -------------------------------------------------------------
@@ -1378,6 +1381,20 @@
 }
 
 @media (max-width: 767px) {
+  .aboutSection {
+    padding: 84px 16px 40px 16px;
+    overflow-x: hidden;
+  }
+
+  .aboutSectionPreview {
+    padding: 60px 16px;
+  }
+
+  .container {
+    width: 100%;
+    padding: 0;
+  }
+
   .bottomStatsRow {
     grid-template-columns: 1fr;
     gap: 20px;

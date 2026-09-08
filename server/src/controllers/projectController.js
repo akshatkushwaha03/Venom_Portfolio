@@ -77,14 +77,7 @@ async function createProject(req, res) {
   try {
     const { description, url, thumbnailUrl, category } = req.body;
 
-    // Validation
-    if (!description || !description.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Project description is required',
-      });
-    }
-
+    // Validation: URL is strictly required
     if (!url || !url.trim()) {
       return res.status(400).json({
         success: false,
@@ -92,8 +85,8 @@ async function createProject(req, res) {
       });
     }
 
-    // Determine next order sequence for this category
-    const catName = category ? category.trim() : 'Personal Projects';
+    // Determine category (optional, defaults to 'Personal Projects')
+    const catName = category && category.trim() ? category.trim() : 'Personal Projects';
     const lastProjectInCat = await prisma.project.findFirst({
       where: { category: catName },
       orderBy: { order: 'desc' },
@@ -103,10 +96,10 @@ async function createProject(req, res) {
       ? lastProjectInCat.order + 1
       : 0;
 
-    // Persist in Supabase PostgreSQL via Prisma
+    // Persist in Supabase PostgreSQL via Prisma (description is optional, stored as trimmed string or null)
     const newProject = await prisma.project.create({
       data: {
-        description: description.trim(),
+        description: description && description.trim() ? description.trim() : null,
         url: url.trim(),
         thumbnailUrl: thumbnailUrl ? thumbnailUrl.trim() : null,
         category: catName,
@@ -152,10 +145,10 @@ async function updateProject(req, res) {
     const updatedProject = await prisma.project.update({
       where: { id },
       data: {
-        description: description !== undefined ? description.trim() : existingProject.description,
+        description: description !== undefined ? (description && description.trim() ? description.trim() : null) : existingProject.description,
         url: url !== undefined ? url.trim() : existingProject.url,
         thumbnailUrl: thumbnailUrl !== undefined ? (thumbnailUrl ? thumbnailUrl.trim() : null) : existingProject.thumbnailUrl,
-        category: category !== undefined ? category.trim() : existingProject.category,
+        category: category !== undefined ? (category.trim() || 'Personal Projects') : existingProject.category,
         order: req.body.order !== undefined ? Number(req.body.order) : existingProject.order,
       },
     });

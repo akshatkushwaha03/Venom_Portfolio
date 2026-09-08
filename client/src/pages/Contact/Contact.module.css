@@ -19,10 +19,12 @@
 
   position: relative;
   width: 100%;
+  max-width: 100%;
   background-color: var(--cnt-bg);
   color: var(--cnt-text-white);
   padding: clamp(90px, 14vh, 160px) clamp(20px, 4vw, 72px) clamp(40px, 6vh, 60px);
   overflow: hidden;
+  box-sizing: border-box;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -44,9 +46,11 @@
   top: -80px;
   right: 5%;
   width: 650px;
+  max-width: 100%;
   height: 480px;
   background: radial-gradient(circle, rgba(20, 184, 166, 0.16) 0%, transparent 70%);
   pointer-events: none;
+  overflow: hidden;
   z-index: 1;
 }
 
@@ -55,9 +59,11 @@
   bottom: 8%;
   left: 3%;
   width: 600px;
+  max-width: 100%;
   height: 420px;
   background: radial-gradient(circle, rgba(45, 212, 191, 0.14) 0%, transparent 70%);
   pointer-events: none;
+  overflow: hidden;
   z-index: 1;
 }
 
@@ -67,6 +73,7 @@
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 /* =============================================================
@@ -323,6 +330,8 @@
   flex-direction: column;
   gap: 4px;
   flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .channelLabel {
@@ -340,6 +349,8 @@
   color: var(--cnt-text-white);
   text-decoration: none;
   transition: color 0.25s ease;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .channelValue:hover {
@@ -408,6 +419,8 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .specKey {
@@ -416,6 +429,7 @@
   letter-spacing: 0.14em;
   color: var(--cnt-text-muted);
   text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .specVal {
@@ -425,6 +439,7 @@
   letter-spacing: 0.1em;
   color: var(--cnt-text-off);
   text-align: right;
+  word-break: break-word;
 }
 
 .specDivider {
@@ -796,8 +811,159 @@
    Mobile & Tablet Adjustments
    ============================================================= */
 @media (max-width: 767px) {
+  .contactSection {
+    padding: 84px 16px 40px 16px;
+    overflow-x: hidden;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+  }
+
   .mainTitle {
-    font-size: 2.8rem;
+    font-size: clamp(2.2rem, 8.5vw, 2.9rem);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.05;
+  }
+
+  .statementLead {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+
+  .splitGrid {
+    gap: 36px;
+    margin-bottom: 60px;
+  }
+
+  .directCol {
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .statusBadgeCard {
+    padding: 14px 16px;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 12px;
+  }
+
+  .statusHeading {
+    font-size: clamp(0.68rem, 3.2vw, 0.74rem);
+    word-break: break-word;
+  }
+
+  .statusSub {
+    font-size: clamp(0.58rem, 2.8vw, 0.64rem);
+    word-break: break-word;
+  }
+
+  .channelsList {
+    gap: 12px;
+    width: 100%;
+  }
+
+  .channelCard {
+    padding: 16px 14px;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .channelIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+
+  .channelIcon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .channelValue {
+    font-size: clamp(0.8rem, 3.3vw, 0.92rem);
+    line-height: 1.35;
+  }
+
+  .copyBtn {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+  }
+
+  .studioSpecsCard {
+    padding: 18px 16px;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .specRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .specVal {
+    text-align: left;
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+
+  .formCol {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .formContainer {
+    padding: 20px 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .formHeader {
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+  }
+
+  .formTitle {
+    font-size: 1.2rem;
+  }
+
+  .inputsRow {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .inputField,
+  .textareaField {
+    padding: 12px 14px;
+    font-size: 0.88rem;
+  }
+
+  .disciplineGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .discPill {
+    padding: 10px 12px;
+    font-size: 0.7rem;
+  }
+
+  .submitButton {
+    padding: 14px 18px;
+    font-size: 0.78rem;
   }
 
   .footerTop {
@@ -808,9 +974,17 @@
 
   .footerNav {
     gap: 14px;
+    width: 100%;
   }
 
-  .disciplineGrid {
-    grid-template-columns: 1fr;
+  .backToTopBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footerBottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 }
