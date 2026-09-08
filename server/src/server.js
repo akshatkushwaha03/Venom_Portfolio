@@ -2,6 +2,7 @@ require('dotenv').config();
 const app = require('./app');
 
 const PORT = process.env.PORT || 5000;
+// Server instance
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server listening on http://localhost:${PORT} in ${process.env.NODE_ENV || 'development'} mode`);

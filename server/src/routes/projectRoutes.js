@@ -30,9 +30,16 @@ router.get('/:id', projectController.getProjectById);
 router.post('/', projectController.createProject);
 
 /**
+ * Reorder Projects
+ * PUT /api/projects/reorder
+ * Body: { orderedIds: string[] } or { items: [{ id, order }] }
+ */
+router.put('/reorder', projectController.reorderProjects);
+
+/**
  * Update Project
  * PUT /api/projects/:id
- * Body: { description, url, thumbnailUrl, category }
+ * Body: { description, url, thumbnailUrl, category, order }
  */
 router.put('/:id', projectController.updateProject);
 

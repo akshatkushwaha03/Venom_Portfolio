@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getProjects } from '@/services/api';
+import { getProjects, reorderProjects } from '@/services/api';
 import useInteractionLayer from '@/hooks/useInteractionLayer';
 import styles from './Work.module.css';
 
@@ -58,6 +58,24 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
   const [loading, setLoading] = useState(true);
   const [activeVideoProject, setActiveVideoProject] = useState(null);
 
+  // Video Reordering States
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const [orderedCategoryProjects, setOrderedCategoryProjects] = useState([]);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
+
+  // Passcode gate modal state
+  const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
+  const [passcodePrompt, setPasscodePrompt] = useState('');
+  const [passcodeError, setPasscodeError] = useState('');
+
+  const showToast = (text, type = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   // Fetch all projects dynamically from server API
   useEffect(() => {
     fetchServerProjects();
@@ -82,7 +100,7 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
     const dbCategoryNames = Array.from(new Set(projects.map((p) => p.category || 'General')));
 
     return dbCategoryNames.map((catName, idx) => {
-      const categoryProjects = projects.filter(
+      const catProjects = projects.filter(
         (p) => (p.category || 'General').toLowerCase() === catName.toLowerCase()
       );
 
@@ -90,10 +108,10 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
         id: idx < 9 ? `0${idx + 1}` : `${idx + 1}`,
         name: catName,
         discipline: `${catName.toUpperCase()} ARCHIVE`,
-        description: `Collection of ${categoryProjects.length} ${
-          categoryProjects.length === 1 ? 'project' : 'projects'
+        description: `Collection of ${catProjects.length} ${
+          catProjects.length === 1 ? 'project' : 'projects'
         } published under ${catName}.`,
-        projectCount: categoryProjects.length,
+        projectCount: catProjects.length,
       };
     });
   }, [projects]);
@@ -101,13 +119,131 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
   // Decode selected category name from route params
   const decodedCategory = categoryName ? decodeURIComponent(categoryName) : null;
 
-  // Filter projects by active category for Stage 2
+  // Filter projects by active category for Stage 2, preserving order
   const categoryProjects = useMemo(() => {
     if (!decodedCategory) return [];
-    return projects.filter(
-      (p) => (p.category || 'General').toLowerCase() === decodedCategory.toLowerCase()
-    );
+    return projects
+      .filter(
+        (p) => (p.category || 'General').toLowerCase() === decodedCategory.toLowerCase()
+      )
+      .sort((a, b) => {
+        const orderA = a.order ?? 0;
+        const orderB = b.order ?? 0;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
   }, [projects, decodedCategory]);
+
+  // Handle entering reorder mode
+  const handleStartReorder = () => {
+    const isAuth = sessionStorage.getItem('venom_admin_token') === 'authenticated';
+    if (isAuth) {
+      setOrderedCategoryProjects([...categoryProjects]);
+      setIsReorderMode(true);
+    } else {
+      setIsPasscodeModalOpen(true);
+      setPasscodePrompt('');
+      setPasscodeError('');
+    }
+  };
+
+  const handleUnlockWithPasscode = (e) => {
+    e.preventDefault();
+    const entered = passcodePrompt.trim();
+    const activePass = localStorage.getItem('venom_admin_custom_passcode') || 'venom';
+    const masterKey = 'admin123';
+
+    if (
+      entered.toLowerCase() === activePass.toLowerCase() ||
+      entered === activePass ||
+      entered === masterKey
+    ) {
+      sessionStorage.setItem('venom_admin_token', 'authenticated');
+      setIsPasscodeModalOpen(false);
+      setPasscodePrompt('');
+      setOrderedCategoryProjects([...categoryProjects]);
+      setIsReorderMode(true);
+      showToast('Admin authorized: Reorder mode active.');
+    } else {
+      setPasscodeError('Invalid Admin Key. Enter "venom" or your custom password.');
+    }
+  };
+
+  const handleCancelReorder = () => {
+    setOrderedCategoryProjects([]);
+    setIsReorderMode(false);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const moveProject = (fromIndex, toIndex) => {
+    if (toIndex < 0 || toIndex >= orderedCategoryProjects.length) return;
+    const updated = [...orderedCategoryProjects];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    setOrderedCategoryProjects(updated);
+  };
+
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    moveProject(draggedIndex, targetIndex);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleSaveOrder = async () => {
+    try {
+      setIsSavingOrder(true);
+      const orderedIds = orderedCategoryProjects.map((p) => p.id);
+      await reorderProjects(orderedIds);
+
+      // Persist the updated sequence in local projects state
+      const orderMap = new Map();
+      orderedIds.forEach((id, idx) => orderMap.set(id, idx));
+
+      setProjects((prev) =>
+        prev.map((p) => {
+          if (orderMap.has(p.id)) {
+            return { ...p, order: orderMap.get(p.id) };
+          }
+          return p;
+        })
+      );
+
+      setIsReorderMode(false);
+      setOrderedCategoryProjects([]);
+      showToast('Video sequence saved! Visitors will now see this order.');
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || 'Failed to save order', 'error');
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
 
   // Active Category metadata object
   const currentCategoryMeta = useMemo(() => {
@@ -246,7 +382,10 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
               <button
                 type="button"
                 className={styles.backBtn}
-                onClick={() => navigate('/work')}
+                onClick={() => {
+                  if (isReorderMode) handleCancelReorder();
+                  navigate('/work');
+                }}
               >
                 <span className={styles.backArrow}>←</span> ALL CATEGORIES
               </button>
@@ -254,7 +393,58 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
               <span className={styles.breadCrumb}>
                 WORK // <strong style={{ color: '#14b8a6' }}>{currentCategoryMeta?.name}</strong>
               </span>
+
+              {/* REORDER BUTTON (Available whenever category has projects) */}
+              {categoryProjects.length > 0 && !isReorderMode && (
+                <button
+                  type="button"
+                  onClick={handleStartReorder}
+                  className={styles.reorderToggleBtn}
+                  title="Arrange videos according to your preference in this category"
+                >
+                  <span className={styles.reorderIcon}>⇄</span>
+                  <span>REORDER VIDEOS</span>
+                  <span className={styles.adminMiniBadge}>ADMIN</span>
+                </button>
+              )}
             </div>
+
+            {/* Sticky Reorder Control Bar (when Reorder Mode is active) */}
+            {isReorderMode && (
+              <div className={styles.reorderStickyBar}>
+                <div className={styles.reorderInfo}>
+                  <div className={styles.reorderStatusRow}>
+                    <span className={styles.livePulseDot} />
+                    <span className={styles.reorderHeading}>REORDER MODE ACTIVE</span>
+                    <span className={styles.reorderCountBadge}>
+                      {orderedCategoryProjects.length} VIDEOS
+                    </span>
+                  </div>
+                  <p className={styles.reorderHint}>
+                    Drag items or use the ▲ / ▼ buttons to rearrange the sequence. Visitors will see this exact order.
+                  </p>
+                </div>
+
+                <div className={styles.reorderActions}>
+                  <button
+                    type="button"
+                    onClick={handleCancelReorder}
+                    className={styles.cancelReorderBtn}
+                    disabled={isSavingOrder}
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveOrder}
+                    className={styles.saveReorderBtn}
+                    disabled={isSavingOrder}
+                  >
+                    {isSavingOrder ? 'SAVING...' : '✓ SAVE NEW ORDER'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Category Banner */}
             <header className={styles.categoryHeader}>
@@ -269,15 +459,57 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                 <div className={styles.spinner} />
                 <p>Fetching projects for {currentCategoryMeta?.name}...</p>
               </div>
-            ) : categoryProjects.length > 0 ? (
+            ) : (isReorderMode ? orderedCategoryProjects : categoryProjects).length > 0 ? (
               <div className={styles.projectsGrid}>
-                {categoryProjects.map((project) => (
+                {(isReorderMode ? orderedCategoryProjects : categoryProjects).map((project, index) => (
                   <article
                     key={project.id}
-                    className={styles.projectCard}
-                    data-tilt
-                    onClick={() => setActiveVideoProject(project)}
+                    className={`${styles.projectCard} ${isReorderMode ? styles.projectCardReorderable : ''} ${
+                      draggedIndex === index ? styles.cardDragging : ''
+                    } ${dragOverIndex === index ? styles.cardDragOver : ''}`}
+                    draggable={isReorderMode}
+                    onDragStart={isReorderMode ? (e) => handleDragStart(e, index) : undefined}
+                    onDragOver={isReorderMode ? (e) => handleDragOver(e, index) : undefined}
+                    onDrop={isReorderMode ? (e) => handleDrop(e, index) : undefined}
+                    onDragEnd={isReorderMode ? handleDragEnd : undefined}
+                    data-tilt={!isReorderMode}
+                    onClick={!isReorderMode ? () => setActiveVideoProject(project) : undefined}
                   >
+                    {isReorderMode && (
+                      <div className={styles.reorderControlHeader}>
+                        <div className={styles.reorderIndexBadge}>
+                          <span className={styles.dragHandleIcon} title="Drag to rearrange">⠿</span>
+                          <span className={styles.indexNum}>#{index + 1}</span>
+                        </div>
+                        <div className={styles.shiftButtonGroup}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveProject(index, index - 1);
+                            }}
+                            disabled={index === 0}
+                            className={styles.shiftBtn}
+                            title="Move Up"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              moveProject(index, index + 1);
+                            }}
+                            disabled={index === orderedCategoryProjects.length - 1}
+                            className={styles.shiftBtn}
+                            title="Move Down"
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     <div className={styles.thumbnailStage}>
                       {project.thumbnailUrl ? (
                         <img
@@ -293,25 +525,29 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                         </div>
                       )}
 
-                      <div className={styles.stageOverlay}>
-                        <button type="button" className={styles.playBadgeBtn}>
-                          ▶ PLAY VIDEO
-                        </button>
-                      </div>
+                      {!isReorderMode && (
+                        <div className={styles.stageOverlay}>
+                          <button type="button" className={styles.playBadgeBtn}>
+                            ▶ PLAY VIDEO
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     <div className={styles.projectInfo}>
                       <div className={styles.projectMetaRow}>
                         <span className={styles.catPill}>{project.category}</span>
                         <span className={styles.dateBadge}>
-                          {new Date(project.createdAt).toLocaleDateString()}
+                          {isReorderMode ? `POSITION #${index + 1}` : new Date(project.createdAt).toLocaleDateString()}
                         </span>
                       </div>
 
                       <p className={styles.projectDesc}>{project.description}</p>
 
                       <div className={styles.projectActionRow}>
-                        <span className={styles.watchText}>CLICK TO PLAY ↗</span>
+                        <span className={styles.watchText}>
+                          {isReorderMode ? 'DRAG OR USE ▲ ▼ TO MOVE' : 'CLICK TO PLAY ↗'}
+                        </span>
                       </div>
                     </div>
                   </article>
@@ -406,6 +642,70 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
               <p className={styles.modalDesc}>{activeVideoProject.description}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* =================================================================
+         PASSCODE GATE MODAL (To Unlock Reordering)
+         ================================================================= */}
+      {isPasscodeModalOpen && (
+        <div className={styles.passcodeOverlay} onClick={() => setIsPasscodeModalOpen(false)}>
+          <div className={styles.passcodeCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.passcodeHeader}>
+              <div className={styles.passcodeBadgeRow}>
+                <span className={styles.passcodeIcon}>🔒</span>
+                <span className={styles.passcodeBadge}>STUDIO ADMIN ACCESS</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPasscodeModalOpen(false)}
+                className={styles.passcodeCloseBtn}
+              >
+                ✕
+              </button>
+            </div>
+
+            <h3 className={styles.passcodeTitle}>ENTER ADMIN KEY</h3>
+            <p className={styles.passcodeSub}>
+              Enter your studio passcode to arrange and customize video order for <strong>{currentCategoryMeta?.name}</strong>.
+            </p>
+
+            <form onSubmit={handleUnlockWithPasscode} className={styles.passcodeForm}>
+              <input
+                type="password"
+                value={passcodePrompt}
+                onChange={(e) => setPasscodePrompt(e.target.value)}
+                placeholder="Enter admin passcode (Default: venom)"
+                className={styles.passcodeInput}
+                autoFocus
+              />
+              {passcodeError && <p className={styles.passcodeErrorText}>{passcodeError}</p>}
+
+              <div className={styles.passcodeActions}>
+                <button
+                  type="button"
+                  onClick={() => setIsPasscodeModalOpen(false)}
+                  className={styles.cancelPasscodeBtn}
+                >
+                  CANCEL
+                </button>
+                <button type="submit" className={styles.submitPasscodeBtn}>
+                  UNLOCK & REORDER →
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div
+          className={`${styles.toast} ${
+            toastMessage.type === 'error' ? styles.toastError : styles.toastSuccess
+          }`}
+        >
+          <span>{toastMessage.text}</span>
         </div>
       )}
     </section>

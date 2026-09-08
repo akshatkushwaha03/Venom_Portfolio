@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { API_BASE } from '@/services/api';
 import styles from './Contact.module.css';
 
 export const Contact = ({ id = 'contact' }) => {
@@ -76,7 +77,8 @@ export const Contact = ({ id = 'contact' }) => {
     setStatus((prev) => ({ ...prev, submitting: true, error: null }));
 
     try {
-      const response = await fetch('/api/contact', {
+      const contactUrl = API_BASE ? `${API_BASE}/api/contact` : '/api/contact';
+      const response = await fetch(contactUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

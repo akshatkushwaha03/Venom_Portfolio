@@ -3,17 +3,44 @@
  * Connects the React frontend with the Express backend & Supabase Storage.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+  }
+  // If running locally in development without VITE_API_URL, target local backend port 3000
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ) {
+    return 'http://localhost:3000';
+  }
+  return '';
+};
+
+export const API_BASE = getApiBase();
 
 /**
  * Check backend connection status
  */
 export async function checkServerHealth() {
   try {
-    const res = await fetch(`${API_BASE}/api/health`, {
+    let res = await fetch(`${API_BASE}/api/health`, {
       headers: { Accept: 'application/json' },
-    });
-    if (!res.ok) throw new Error(`HTTP status ${res.status}`);
+    }).catch(() => null);
+
+    if (!res || !res.ok) {
+      res = await fetch('/api/health', {
+        headers: { Accept: 'application/json' },
+      }).catch(() => null);
+    }
+
+    if (!res || !res.ok) {
+      res = await fetch('http://localhost:3000/api/health', {
+        headers: { Accept: 'application/json' },
+      }).catch(() => null);
+    }
+
+    if (!res || !res.ok) throw new Error(`HTTP status ${res ? res.status : 'network error'}`);
     return await res.json();
   } catch (err) {
     console.warn('[API] Health check failed:', err.message);
@@ -85,3 +112,24 @@ export async function deleteProject(id) {
   }
   return await res.json();
 }
+
+/**
+ * Batch update the order sequence of projects
+ * @param {string[]} orderedIds - Array of project IDs in new sequence
+ */
+export async function reorderProjects(orderedIds) {
+  const res = await fetch(`${API_BASE}/api/projects/reorder`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ orderedIds }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.message || 'Failed to update project order');
+  }
+  return await res.json();
+}
+

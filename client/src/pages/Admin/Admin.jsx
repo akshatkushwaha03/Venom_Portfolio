@@ -1,9 +1,22 @@
 import { useState, useEffect } from 'react';
 import styles from './Admin.module.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api`
-  : '/api';
+const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    const trimmed = import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+    return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+  }
+  // Auto-detect local development environment
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ) {
+    return 'http://localhost:3000/api';
+  }
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const formatImageSrc = (url) => {
   if (!url) return '';
@@ -77,6 +90,12 @@ export const Admin = () => {
   // Filter state
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('All');
 
+  // Video Reordering Modal State
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const [reorderCategory, setReorderCategory] = useState('');
+  const [reorderList, setReorderList] = useState([]);
+  const [savingReorder, setSavingReorder] = useState(false);
+
   // Check Auth on Mount & Fetch Projects
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability
@@ -89,8 +108,24 @@ export const Admin = () => {
 
   const checkHealth = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/health`);
-      if (res.ok) {
+      // 1. Try primary configured API URL
+      let res = await fetch(`${API_BASE_URL}/health`).catch(() => null);
+
+      // 2. If running via proxy, try relative /api/health
+      if (!res || !res.ok) {
+        res = await fetch('/api/health').catch(() => null);
+      }
+
+      // 3. Fallback to direct localhost port 3000 if in local browser
+      if (
+        (!res || !res.ok) &&
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ) {
+        res = await fetch('http://localhost:3000/api/health').catch(() => null);
+      }
+
+      if (res && res.ok) {
         setApiStatus('online');
       } else {
         setApiStatus('offline');
@@ -247,14 +282,28 @@ export const Admin = () => {
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/projects`);
-      const data = await res.json();
-      if (data.success) {
-        setProjects(data.data || []);
-        setApiStatus('online');
-      } else {
-        showToast('Failed to fetch projects', 'error');
+      let res = await fetch(`${API_BASE_URL}/projects`).catch(() => null);
+      if (!res || !res.ok) {
+        res = await fetch('/api/projects').catch(() => null);
       }
+      if (
+        (!res || !res.ok) &&
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ) {
+        res = await fetch('http://localhost:3000/api/projects').catch(() => null);
+      }
+
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setProjects(data.data || []);
+          setApiStatus('online');
+          return;
+        }
+      }
+      showToast('Failed to fetch projects', 'error');
+      setApiStatus('offline');
     } catch (err) {
       console.error(err);
       setApiStatus('offline');
@@ -404,11 +453,80 @@ export const Admin = () => {
     new Set(projects.map((p) => p.category).filter((c) => c && c.trim().length > 0))
   );
 
-  // Filtered Projects
-  const filteredProjects = projects.filter((p) => {
-    if (activeCategoryFilter === 'All') return true;
-    return p.category === activeCategoryFilter;
-  });
+  // Reordering handlers for Admin
+  const openReorderModal = (categoryToReorder) => {
+    const targetCat = categoryToReorder || (categoriesPresent[0] || '');
+    setReorderCategory(targetCat);
+    const catItems = projects
+      .filter((p) => p.category === targetCat)
+      .sort((a, b) => {
+        const orderA = a.order ?? 0;
+        const orderB = b.order ?? 0;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+    setReorderList(catItems);
+    setIsReorderModalOpen(true);
+  };
+
+  const handleCategoryChangeInReorder = (cat) => {
+    setReorderCategory(cat);
+    const catItems = projects
+      .filter((p) => p.category === cat)
+      .sort((a, b) => {
+        const orderA = a.order ?? 0;
+        const orderB = b.order ?? 0;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+    setReorderList(catItems);
+  };
+
+  const moveReorderItem = (fromIndex, toIndex) => {
+    if (toIndex < 0 || toIndex >= reorderList.length) return;
+    const updated = [...reorderList];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    setReorderList(updated);
+  };
+
+  const handleSaveReorderInAdmin = async () => {
+    try {
+      setSavingReorder(true);
+      const orderedIds = reorderList.map((p) => p.id);
+      const res = await fetch(`${API_BASE_URL}/projects/reorder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderedIds }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Video order updated successfully! Visitors will see this sequence.');
+        setIsReorderModalOpen(false);
+        fetchProjects();
+      } else {
+        showToast(data.message || 'Failed to update video order', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Network error saving video order', 'error');
+    } finally {
+      setSavingReorder(false);
+    }
+  };
+
+  // Filtered Projects (Sorted by order ASC, then createdAt DESC)
+  const filteredProjects = projects
+    .filter((p) => {
+      if (activeCategoryFilter === 'All') return true;
+      return p.category === activeCategoryFilter;
+    })
+    .sort((a, b) => {
+      const orderA = a.order ?? 0;
+      const orderB = b.order ?? 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
 
   // PASSCODE LOCK SCREEN
   if (!isAuthenticated) {
@@ -681,6 +799,22 @@ export const Admin = () => {
               </button>
             ))}
           </div>
+
+          {categoriesPresent.length > 0 && (
+            <button
+              type="button"
+              onClick={() =>
+                openReorderModal(
+                  activeCategoryFilter !== 'All' ? activeCategoryFilter : categoriesPresent[0]
+                )
+              }
+              className={styles.adminReorderBtn}
+              title="Arrange and customize video display order"
+            >
+              <span>⇄</span>
+              <span>ARRANGE VIDEOS</span>
+            </button>
+          )}
         </div>
 
         {/* Projects Table / Cards Area */}
@@ -694,6 +828,7 @@ export const Admin = () => {
             <table className={styles.table}>
               <thead>
                 <tr>
+                  <th style={{ width: '80px' }}># ORDER</th>
                   <th>THUMBNAIL / PREVIEW</th>
                   <th>CATEGORY</th>
                   <th>DESCRIPTION</th>
@@ -703,8 +838,11 @@ export const Admin = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredProjects.map((p) => (
+                {filteredProjects.map((p, idx) => (
                   <tr key={p.id} className={styles.tableRow}>
+                    <td>
+                      <span className={styles.orderBadge}>#{idx + 1}</span>
+                    </td>
                     <td>
                       <div className={styles.thumbWrapper}>
                         {p.thumbnailUrl ? (
@@ -1098,6 +1236,112 @@ export const Admin = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* REORDER CATEGORY MODAL */}
+      {isReorderModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsReorderModalOpen(false)}>
+          <div className={styles.reorderModalCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.reorderModalHeader}>
+              <h3 className={styles.modalTitle}>ARRANGE VIDEO SEQUENCE</h3>
+              <button
+                type="button"
+                onClick={() => setIsReorderModalOpen(false)}
+                className={styles.modalCloseBtn}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Category selection */}
+            <div className={styles.reorderCategorySelector}>
+              <label className={styles.reorderCategoryLabel}>SELECT CATEGORY:</label>
+              <select
+                value={reorderCategory}
+                onChange={(e) => handleCategoryChangeInReorder(e.target.value)}
+                className={styles.select}
+              >
+                {categoriesPresent.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat} ({projects.filter((p) => p.category === cat).length} videos)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Reorderable list */}
+            <div className={styles.reorderListContainer}>
+              {reorderList.length > 0 ? (
+                reorderList.map((item, idx) => (
+                  <div key={item.id} className={styles.reorderItemCard}>
+                    <span className={styles.reorderHandle} title="Drag item">⠿</span>
+                    <span className={styles.reorderItemIndex}>#{idx + 1}</span>
+
+                    {item.thumbnailUrl ? (
+                      <img
+                        src={formatImageSrc(item.thumbnailUrl)}
+                        alt=""
+                        className={styles.reorderThumb}
+                      />
+                    ) : (
+                      <div className={styles.reorderThumbPlaceholder}>
+                        <span>VID</span>
+                      </div>
+                    )}
+
+                    <div className={styles.reorderItemInfo}>
+                      <p className={styles.reorderItemTitle}>{item.description}</p>
+                    </div>
+
+                    <div className={styles.reorderShiftBtns}>
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => moveReorderItem(idx, idx - 1)}
+                        className={styles.reorderShiftBtn}
+                        title="Move Up"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === reorderList.length - 1}
+                        onClick={() => moveReorderItem(idx, idx + 1)}
+                        className={styles.reorderShiftBtn}
+                        title="Move Down"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p style={{ color: 'rgba(255,255,255,0.6)', textAlign: 'center', padding: '24px 0' }}>
+                  No videos in this category.
+                </p>
+              )}
+            </div>
+
+            <div className={styles.reorderModalFooter}>
+              <button
+                type="button"
+                onClick={() => setIsReorderModalOpen(false)}
+                className={styles.cancelBtn}
+                disabled={savingReorder}
+              >
+                CANCEL
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveReorderInAdmin}
+                className={styles.submitBtn}
+                disabled={savingReorder || reorderList.length === 0}
+              >
+                {savingReorder ? 'SAVING SEQUENCE...' : '✓ SAVE SEQUENCE'}
+              </button>
+            </div>
           </div>
         </div>
       )}

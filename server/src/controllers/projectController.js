@@ -15,7 +15,10 @@ async function getAllProjects(req, res) {
 
     const projects = await prisma.project.findMany({
       where: whereClause,
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'desc' },
+      ],
     });
 
     return res.status(200).json({
@@ -89,13 +92,25 @@ async function createProject(req, res) {
       });
     }
 
+    // Determine next order sequence for this category
+    const catName = category ? category.trim() : 'Personal Projects';
+    const lastProjectInCat = await prisma.project.findFirst({
+      where: { category: catName },
+      orderBy: { order: 'desc' },
+      select: { order: true },
+    });
+    const nextOrder = lastProjectInCat && typeof lastProjectInCat.order === 'number'
+      ? lastProjectInCat.order + 1
+      : 0;
+
     // Persist in Supabase PostgreSQL via Prisma
     const newProject = await prisma.project.create({
       data: {
         description: description.trim(),
         url: url.trim(),
         thumbnailUrl: thumbnailUrl ? thumbnailUrl.trim() : null,
-        category: category ? category.trim() : 'Personal Projects',
+        category: catName,
+        order: req.body.order !== undefined ? Number(req.body.order) : nextOrder,
       },
     });
 
@@ -141,6 +156,7 @@ async function updateProject(req, res) {
         url: url !== undefined ? url.trim() : existingProject.url,
         thumbnailUrl: thumbnailUrl !== undefined ? (thumbnailUrl ? thumbnailUrl.trim() : null) : existingProject.thumbnailUrl,
         category: category !== undefined ? category.trim() : existingProject.category,
+        order: req.body.order !== undefined ? Number(req.body.order) : existingProject.order,
       },
     });
 
@@ -226,6 +242,59 @@ async function getCategories(req, res) {
   }
 }
 
+/**
+ * PUT /api/projects/reorder
+ * Batch update the sequence/order of projects
+ * Accepts { orderedIds: string[] } or { items: [{ id: string, order: number }] }
+ */
+async function reorderProjects(req, res) {
+  try {
+    const { orderedIds, items } = req.body;
+
+    let updates = [];
+
+    if (Array.isArray(orderedIds) && orderedIds.length > 0) {
+      updates = orderedIds.map((id, index) => ({
+        id,
+        order: index,
+      }));
+    } else if (Array.isArray(items) && items.length > 0) {
+      updates = items.map((item, index) => ({
+        id: item.id,
+        order: typeof item.order === 'number' ? item.order : index,
+      }));
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'orderedIds array or items array is required to reorder projects',
+      });
+    }
+
+    // Execute atomic transaction to update orders for each project
+    await prisma.$transaction(
+      updates.map((u) =>
+        prisma.project.update({
+          where: { id: u.id },
+          data: { order: u.order },
+        })
+      )
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Projects reordered successfully',
+      count: updates.length,
+    });
+  } catch (error) {
+    console.error('[PROJECTS CONTROLLER] Error reordering projects:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update project order in database',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+}
+
 module.exports = {
   getAllProjects,
   getProjectById,
@@ -233,4 +302,6 @@ module.exports = {
   updateProject,
   deleteProject,
   getCategories,
+  reorderProjects,
 };
+
