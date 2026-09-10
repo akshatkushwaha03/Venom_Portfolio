@@ -239,7 +239,7 @@ Instagram: https://instagram.com/iam__v3nom`,
 
     return res.status(200).json({
       success: true,
-      message: 'Transmission received. Akshat will be in touch within 24 hours.',
+      message: 'Message sent. Akshat will be in touch within 24 hours.',
       emailDispatched,
       inquirySummary: {
         name: inquiry.name,

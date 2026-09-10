@@ -265,7 +265,7 @@ export const Contact = ({ id = 'contact' }) => {
               {status.submitted ? (
                 <div className={styles.successBox}>
                   <div className={styles.successIcon}>✓</div>
-                  <h4 className={styles.successHeading}>MESSAGE RECEIVED</h4>
+                  <h4 className={styles.successHeading}>MESSAGE SENT</h4>
                   <p className={styles.successText}>
                     Thank you for reaching out. Your message has been sent to Akshat.
                     Expect a response within 24 hours.
