@@ -895,8 +895,6 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
         onDragOver={isReorderMode ? (e) => handleDragOver(e, index) : undefined}
         onDrop={isReorderMode ? (e) => handleDrop(e, index) : undefined}
         onDragEnd={isReorderMode ? handleDragEnd : undefined}
-        data-cursor={!isReorderMode ? 'card' : undefined}
-        data-cursor-text="WATCH"
         onClick={!isReorderMode ? () => setActiveVideoProject(project) : undefined}
       >
         {isReorderMode && (

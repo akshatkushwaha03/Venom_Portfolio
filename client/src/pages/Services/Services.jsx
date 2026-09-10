@@ -143,8 +143,6 @@ export const Services = ({ id = 'services', actionLink = null, isPreview = false
                 className={styles.serviceCard}
                 tabIndex={0}
                 data-tilt
-                data-cursor="card"
-                data-cursor-text={item.num}
               >
                 {/* Subtle Cinematic Background Image Texture inside Card */}
                 <div
