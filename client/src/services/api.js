@@ -4,8 +4,13 @@
  */
 
 const getApiBase = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+  let url = import.meta.env.VITE_API_URL;
+  if (url) {
+    url = url.replace(/\/+$/, '');
+    if (url.endsWith('/api')) {
+      url = url.slice(0, -4);
+    }
+    return url;
   }
   // If running locally in development without VITE_API_URL, target local backend port 5000
   if (
@@ -127,18 +132,46 @@ export const getAuthHeaders = () => {
  * Login Admin with username and password
  */
 export async function loginAdmin(username, password) {
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({ username, password }),
-  });
+  let res;
+  try {
+    res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+    });
+  } catch (err) {
+    if (
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ) {
+      try {
+        res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+      } catch {
+        throw new Error(`Cannot connect to backend server at ${API_BASE}. Make sure the server is running.`);
+      }
+    } else {
+      throw new Error('Network error: Unable to reach backend API.');
+    }
+  }
+
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error('API server returned unexpected non-JSON response. Please check server status.');
+  }
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.message || 'Login failed');
+    throw new Error(data.message || 'Invalid username or password.');
   }
 
   if (data.token) {
@@ -154,19 +187,27 @@ export async function getMe() {
   const token = getAuthToken();
   if (!token) return null;
 
-  const res = await fetch(`${API_BASE}/api/auth/me`, {
-    headers: {
-      Accept: 'application/json',
-      ...getAuthHeaders(),
-    },
-  });
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/me`, {
+      headers: {
+        Accept: 'application/json',
+        ...getAuthHeaders(),
+      },
+    });
 
-  if (!res.ok) {
-    removeAuthToken();
+    if (!res.ok) {
+      removeAuthToken();
+      return null;
+    }
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return null;
+    }
+    const data = await res.json();
+    return data.user || null;
+  } catch {
     return null;
   }
-  const data = await res.json();
-  return data.user || null;
 }
 
 /**

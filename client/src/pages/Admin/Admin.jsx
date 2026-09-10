@@ -38,9 +38,9 @@ const formatImageSrc = (url) => {
     return `https://drive.google.com/thumbnail?id=${gdriveMatch[1]}&sz=w1000`;
   }
 
-  // Handle YouTube links pasted as thumbnails
+  // Handle YouTube links pasted as thumbnails (including /shorts/)
   const ytMatch = trimmed.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/
   );
   if (ytMatch && ytMatch[1]) {
     return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
@@ -98,6 +98,7 @@ export const Admin = () => {
 
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [thumbAspectInfo, setThumbAspectInfo] = useState(null);
 
   // Filter state
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('All');
@@ -129,23 +130,37 @@ export const Admin = () => {
 
   const checkHealth = async () => {
     try {
-      let res = await fetch(`${API_BASE_URL}/health`).catch(() => null);
+      let res = await fetch(`${API_BASE_URL}/health`, {
+        headers: { Accept: 'application/json' },
+      }).catch(() => null);
+
       if (!res || !res.ok) {
-        res = await fetch('/api/health').catch(() => null);
+        res = await fetch('/api/health', {
+          headers: { Accept: 'application/json' },
+        }).catch(() => null);
       }
+
       if (
         (!res || !res.ok) &&
         typeof window !== 'undefined' &&
         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ) {
-        res = await fetch('http://localhost:5000/api/health').catch(() => null);
+        res = await fetch('http://localhost:5000/api/health', {
+          headers: { Accept: 'application/json' },
+        }).catch(() => null);
       }
 
       if (res && res.ok) {
-        setApiStatus('online');
-      } else {
-        setApiStatus('offline');
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json().catch(() => null);
+          if (data && (data.status === 'OK' || data.success !== false)) {
+            setApiStatus('online');
+            return;
+          }
+        }
       }
+      setApiStatus('offline');
     } catch {
       setApiStatus('offline');
     }
@@ -327,6 +342,7 @@ export const Admin = () => {
       setIsCustomCategory(false);
       setCustomCategoryInput('');
     }
+    setThumbAspectInfo(null);
     setFormError('');
     setIsModalOpen(true);
   };
@@ -348,6 +364,7 @@ export const Admin = () => {
       setIsCustomCategory(true);
       setCustomCategoryInput(projCat);
     }
+    setThumbAspectInfo(null);
     setFormError('');
     setIsModalOpen(true);
   };
@@ -357,6 +374,7 @@ export const Admin = () => {
     setEditingProjectId(null);
     setIsCustomCategory(false);
     setCustomCategoryInput('');
+    setThumbAspectInfo(null);
   };
 
   // Submit Project (Create or Update)
@@ -480,6 +498,24 @@ export const Admin = () => {
     setReorderList(updated);
   };
 
+  const handleAutoGroupByRatioInAdmin = () => {
+    if (!reorderList || reorderList.length <= 1) return;
+    const portraits = [];
+    const landscapes = [];
+    reorderList.forEach((p) => {
+      const isShorts = p.url && p.url.includes('/shorts/');
+      const isModelOrReel = /reel|short|tiktok|vertical|story|stories|portrait|shoot|model/i.test(p.category || '');
+      const orientation = isShorts || isModelOrReel ? 'portrait' : 'landscape';
+      if (orientation === 'portrait') {
+        portraits.push(p);
+      } else {
+        landscapes.push(p);
+      }
+    });
+    setReorderList([...portraits, ...landscapes]);
+    showToast('Videos arranged by aspect ratio! Click "SAVE NEW SEQUENCE" to persist.');
+  };
+
   const handleSaveReorderInAdmin = async () => {
     try {
       setSavingReorder(true);
@@ -532,7 +568,17 @@ export const Admin = () => {
                 <span className={styles.authBrand}>
                   VENOM<span className={styles.dot}>.</span>
                 </span>
-                <span className={styles.authBadge}>ADMIN PORTAL</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className={styles.statusPill}>
+                    <span
+                      className={`${styles.statusDot} ${
+                        apiStatus === 'online' ? styles.dotOnline : styles.dotOffline
+                      }`}
+                    />
+                    <span>API: {apiStatus.toUpperCase()}</span>
+                  </div>
+                  <span className={styles.authBadge}>ADMIN PORTAL</span>
+                </div>
               </div>
 
               <h2 className={styles.authTitle}>STUDIO CONTROL ACCESS</h2>
@@ -611,7 +657,17 @@ export const Admin = () => {
                 <span className={styles.authBrand}>
                   VENOM<span className={styles.dot}>.</span>
                 </span>
-                <span className={styles.authBadge}>PASSWORD RESET</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className={styles.statusPill}>
+                    <span
+                      className={`${styles.statusDot} ${
+                        apiStatus === 'online' ? styles.dotOnline : styles.dotOffline
+                      }`}
+                    />
+                    <span>API: {apiStatus.toUpperCase()}</span>
+                  </div>
+                  <span className={styles.authBadge}>PASSWORD RESET</span>
+                </div>
               </div>
 
               <h2 className={styles.authTitle}>RESET ADMIN PASSWORD</h2>
@@ -1054,7 +1110,20 @@ export const Admin = () => {
                 {/* Live Preview */}
                 {formData.thumbnailUrl && (
                   <div className={styles.previewBox}>
-                    <span className={styles.previewLabel}>THUMBNAIL PREVIEW:</span>
+                    <div className={styles.previewHeaderRow}>
+                      <span className={styles.previewLabel}>THUMBNAIL PREVIEW:</span>
+                      {thumbAspectInfo && (
+                        <span
+                          className={
+                            thumbAspectInfo.isPortrait
+                              ? styles.portraitBadge
+                              : styles.landscapeBadge
+                          }
+                        >
+                          {thumbAspectInfo.isPortrait ? '📱 PORTRAIT' : '🖥️ LANDSCAPE'} ({thumbAspectInfo.width}×{thumbAspectInfo.height})
+                        </span>
+                      )}
+                    </div>
                     <img
                       src={formatImageSrc(formData.thumbnailUrl)}
                       alt="Preview"
@@ -1062,6 +1131,7 @@ export const Admin = () => {
                       referrerPolicy="no-referrer"
                       onError={(e) => {
                         e.target.style.display = 'none';
+                        setThumbAspectInfo(null);
                         const errBox = document.getElementById('thumb-preview-error');
                         if (errBox) errBox.style.display = 'block';
                       }}
@@ -1069,8 +1139,24 @@ export const Admin = () => {
                         e.target.style.display = 'block';
                         const errBox = document.getElementById('thumb-preview-error');
                         if (errBox) errBox.style.display = 'none';
+                        if (e.target.naturalWidth && e.target.naturalHeight) {
+                          const w = e.target.naturalWidth;
+                          const h = e.target.naturalHeight;
+                          setThumbAspectInfo({
+                            width: w,
+                            height: h,
+                            isPortrait: w < h,
+                          });
+                        }
                       }}
                     />
+                    {thumbAspectInfo && (
+                      <p className={styles.aspectHint}>
+                        {thumbAspectInfo.isPortrait
+                          ? '✓ Detected portrait image. Will be displayed with native vertical proportions in the portfolio.'
+                          : '✓ Detected landscape image. Will be displayed with native widescreen proportions in the portfolio.'}
+                      </p>
+                    )}
                     <div
                       id="thumb-preview-error"
                       style={{
@@ -1221,20 +1307,33 @@ export const Admin = () => {
               </button>
             </div>
 
-            {/* Category selection */}
+            {/* Category selection & Auto-group action */}
             <div className={styles.reorderCategorySelector}>
-              <label className={styles.reorderCategoryLabel}>SELECT CATEGORY:</label>
-              <select
-                value={reorderCategory}
-                onChange={(e) => handleCategoryChangeInReorder(e.target.value)}
-                className={styles.select}
-              >
-                {categoriesPresent.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat} ({projects.filter((p) => p.category === cat).length} videos)
-                  </option>
-                ))}
-              </select>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexGrow: 1 }}>
+                <label className={styles.reorderCategoryLabel}>SELECT CATEGORY:</label>
+                <select
+                  value={reorderCategory}
+                  onChange={(e) => handleCategoryChangeInReorder(e.target.value)}
+                  className={styles.select}
+                >
+                  {categoriesPresent.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat} ({projects.filter((p) => p.category === cat).length} videos)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {reorderList.length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleAutoGroupByRatioInAdmin}
+                  className={styles.reorderAutoRatioBtn}
+                  title="Group videos by card ratio (vertical 9:16 together, horizontal 16:9 together)"
+                >
+                  ⚡ AUTO-GROUP BY RATIO
+                </button>
+              )}
             </div>
 
             {/* Reorderable list */}

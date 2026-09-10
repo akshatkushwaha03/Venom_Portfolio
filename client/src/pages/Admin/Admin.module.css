@@ -367,18 +367,24 @@
 }
 
 .thumbWrapper {
-  width: 80px;
-  height: 50px;
+  width: 76px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .thumbImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .thumbPlaceholder {
@@ -606,18 +612,59 @@
   margin-top: 8px;
 }
 
+.previewHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .previewLabel {
   font-size: 0.68rem;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.5);
 }
 
+.portraitBadge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #d8b4fe;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.landscapeBadge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  background: rgba(20, 184, 166, 0.18);
+  border: 1px solid rgba(20, 184, 166, 0.4);
+  color: #99f6e4;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.aspectHint {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 2px 0 0 0;
+  line-height: 1.4;
+}
+
 .previewImg {
-  width: 120px;
-  height: 75px;
-  object-fit: cover;
+  max-width: 180px;
+  max-height: 220px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #000;
+  display: block;
 }
 
 .modalFooter {
@@ -953,9 +1000,30 @@
 
 .reorderCategorySelector {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 12px;
   margin: 18px 0;
+  flex-wrap: wrap;
+}
+
+.reorderAutoRatioBtn {
+  padding: 10px 16px;
+  background: rgba(20, 184, 166, 0.15);
+  border: 1px solid #14b8a6;
+  border-radius: 8px;
+  color: #5eead4;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  white-space: nowrap;
+}
+
+.reorderAutoRatioBtn:hover {
+  background: #14b8a6;
+  color: #030d0c;
+  box-shadow: 0 0 16px rgba(20, 184, 166, 0.5);
 }
 
 .reorderCategoryLabel {
@@ -1008,16 +1076,19 @@
 }
 
 .reorderThumb {
-  width: 52px;
-  height: 32px;
+  max-width: 52px;
+  max-height: 48px;
+  width: auto;
+  height: auto;
   border-radius: 4px;
-  object-fit: cover;
+  object-fit: contain;
   background: #000;
+  display: block;
 }
 
 .reorderThumbPlaceholder {
-  width: 52px;
-  height: 32px;
+  width: 48px;
+  height: 36px;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);

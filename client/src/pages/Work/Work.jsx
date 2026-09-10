@@ -17,9 +17,9 @@ export const formatImageSrc = (url) => {
     return `https://drive.google.com/thumbnail?id=${gdriveMatch[1]}&sz=w1000`;
   }
 
-  // Handle YouTube links pasted as thumbnails
+  // Handle YouTube links pasted as thumbnails (including /shorts/)
   const ytMatch = trimmed.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/
   );
   if (ytMatch && ytMatch[1]) {
     return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
@@ -38,8 +38,10 @@ const parseMediaSource = (url) => {
     return { type: 'iframe', src: `https://drive.google.com/file/d/${gdriveMatch[1]}/preview` };
   }
 
-  // YouTube
-  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  // YouTube & Shorts
+  const ytMatch = url.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/
+  );
   if (ytMatch && ytMatch[1]) {
     return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0` };
   }
@@ -52,6 +54,463 @@ const parseMediaSource = (url) => {
 
   // Direct MP4 / WebM video link
   return { type: 'video', src: url };
+};
+
+
+/**
+ * Rearranges and packs video projects into balanced, full-width mosaic rows
+ * strictly adhering to 16:9 and 9:16 aspect ratios matching the reference layout.
+ * Every row fills 100% width with equal heights across items in that row:
+ * - Duo Landscape: 2 items (16:9), 50% width each (Row 3 of reference image)
+ * - Mixed Trio: [Portrait (9:16), Landscape (16:9), Portrait (9:16)] (Row 1 of reference image)
+ * - Trio Portrait: 3 items (9:16), 33.33% width each (Row 4 of reference image)
+ * - Quartet Portrait: 4 items (9:16), 25% width each
+ * - Mixed Pair: [Landscape (16:9), Portrait (9:16)]
+ * - Duo Portrait: 2 items (9:16), 50% width each
+ * - Solo Landscape: 1 item (16:9), 100% width cinematic banner
+ * - Solo Portrait: 1 item (9:16), centered reel
+ */
+export const packIntoZeroGapRows = (projectsList, getOrientation) => {
+  if (!projectsList || projectsList.length === 0) return [];
+
+  const rows = [];
+  const landscapes = [];
+  const portraits = [];
+
+  projectsList.forEach((p) => {
+    if (getOrientation(p) === 'landscape') {
+      landscapes.push(p);
+    } else {
+      portraits.push(p);
+    }
+  });
+
+  let lIdx = 0;
+  let pIdx = 0;
+
+  while (lIdx < landscapes.length || pIdx < portraits.length) {
+    const lRem = landscapes.length - lIdx;
+    const pRem = portraits.length - pIdx;
+    const rowIndex = rows.length;
+
+    // =========================================================================
+    // CASE A: PURE PORTRAIT STREAM (e.g. Model Shoots, Reels category)
+    // Irregular Dynamic Partition: Alternates 6, 4, 5, 6, 5, 4 to avoid repetitive
+    // uniform rows while keeping cards sleek and compact (no oversized cards).
+    // =========================================================================
+    if (lRem === 0 && pRem > 0) {
+      let take = 5;
+      if (pRem >= 12) {
+        const rhythm = [6, 4, 5, 6, 5, 4];
+        const candidate = rhythm[rowIndex % rhythm.length];
+        const remAfter = pRem - candidate;
+        if (remAfter === 0 || remAfter >= 4) {
+          take = candidate;
+        } else if (pRem - 6 >= 4) {
+          take = 6;
+        } else if (pRem - 5 >= 4) {
+          take = 5;
+        } else {
+          take = 4;
+        }
+      } else if (pRem === 11) {
+        take = 6; // 6 then 5
+      } else if (pRem === 10) {
+        take = rowIndex % 2 === 0 ? 6 : 5; // 6 then 4, or 5 then 5
+      } else if (pRem === 9) {
+        take = 5; // 5 then 4
+      } else if (pRem === 8) {
+        take = 4; // 4 then 4
+      } else if (pRem === 7) {
+        take = 4; // 4 then 3 compact
+      } else if (pRem === 6) {
+        take = 6;
+      } else if (pRem === 5) {
+        take = 5;
+      } else if (pRem === 4) {
+        take = 4;
+      } else {
+        take = pRem; // 3, 2, or 1 -> compact centered
+      }
+
+      if (take === 6) {
+        const items = [];
+        for (let i = 0; i < 6; i++) {
+          items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+        }
+        rows.push({ id: `row-${rowIndex}`, pattern: 'hexad-portrait', items });
+        continue;
+      } else if (take === 5) {
+        const items = [];
+        for (let i = 0; i < 5; i++) {
+          items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+        }
+        rows.push({ id: `row-${rowIndex}`, pattern: 'pentet-portrait', items });
+        continue;
+      } else if (take === 4) {
+        const items = [];
+        for (let i = 0; i < 4; i++) {
+          items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+        }
+        rows.push({ id: `row-${rowIndex}`, pattern: 'quartet-portrait', items });
+        continue;
+      } else if (take === 3) {
+        const items = [];
+        for (let i = 0; i < 3; i++) {
+          items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+        }
+        rows.push({ id: `row-${rowIndex}`, pattern: 'trio-portrait-compact', items });
+        continue;
+      } else if (take === 2) {
+        const items = [];
+        for (let i = 0; i < 2; i++) {
+          items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+        }
+        rows.push({ id: `row-${rowIndex}`, pattern: 'duo-portrait-compact', items });
+        continue;
+      } else if (take === 1) {
+        rows.push({
+          id: `row-${rowIndex}`,
+          pattern: 'solo-portrait-compact',
+          items: [{ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 }],
+        });
+        continue;
+      }
+    }
+
+    // =========================================================================
+    // CASE B: PURE LANDSCAPE STREAM (e.g. Cinema widescreen category)
+    // Compact rows of 4 or 5 widescreen items
+    // =========================================================================
+    if (pRem === 0 && lRem > 0) {
+      if (lRem >= 5 && (rowIndex % 3 === 0 || lRem === 5)) {
+        const items = [];
+        for (let i = 0; i < 5; i++) {
+          items.push({ project: landscapes[lIdx++], orientation: 'landscape', flexGrow: 1 });
+        }
+        rows.push({ id: `row-${rowIndex}`, pattern: 'pentet-landscape', items });
+        continue;
+      }
+      if (lRem >= 4) {
+        const items = [];
+        for (let i = 0; i < 4; i++) {
+          items.push({ project: landscapes[lIdx++], orientation: 'landscape', flexGrow: 1 });
+        }
+        rows.push({ id: `row-${rowIndex}`, pattern: 'quartet-landscape', items });
+        continue;
+      }
+      if (lRem === 3) {
+        const items = [];
+        for (let i = 0; i < 3; i++) {
+          items.push({ project: landscapes[lIdx++], orientation: 'landscape', flexGrow: 1 });
+        }
+        rows.push({ id: `row-${rowIndex}`, pattern: 'trio-landscape-compact', items });
+        continue;
+      }
+      if (lRem === 2) {
+        const items = [];
+        for (let i = 0; i < 2; i++) {
+          items.push({ project: landscapes[lIdx++], orientation: 'landscape', flexGrow: 1 });
+        }
+        rows.push({ id: `row-${rowIndex}`, pattern: 'duo-landscape-compact', items });
+        continue;
+      }
+      if (lRem === 1) {
+        rows.push({
+          id: `row-${rowIndex}`,
+          pattern: 'solo-landscape-compact',
+          items: [{ project: landscapes[lIdx++], orientation: 'landscape', flexGrow: 1 }],
+        });
+        continue;
+      }
+    }
+
+    // =========================================================================
+    // CASE C: MIXED STREAM (Landscapes + Portraits in "All Projects" or mixed cats)
+    // Proportional flex values ensure zero height distortion:
+    // flexGrow: 3.1605 for 16:9 Landscape, 1 for 9:16 Portrait
+    // =========================================================================
+
+    // 1. Mixed Hexad (6 Cards: 1 Landscape + 5 Portraits: [P, P, L, P, P, P])
+    if (lRem >= 1 && pRem >= 5 && rowIndex % 4 === 0) {
+      const p1 = portraits[pIdx++];
+      const p2 = portraits[pIdx++];
+      const l1 = landscapes[lIdx++];
+      const p3 = portraits[pIdx++];
+      const p4 = portraits[pIdx++];
+      const p5 = portraits[pIdx++];
+      rows.push({
+        id: `row-${rowIndex}`,
+        pattern: 'mixed-hexad-1l-5p',
+        items: [
+          { project: p1, orientation: 'portrait', flexGrow: 1 },
+          { project: p2, orientation: 'portrait', flexGrow: 1 },
+          { project: l1, orientation: 'landscape', flexGrow: 3.1605 },
+          { project: p3, orientation: 'portrait', flexGrow: 1 },
+          { project: p4, orientation: 'portrait', flexGrow: 1 },
+          { project: p5, orientation: 'portrait', flexGrow: 1 },
+        ],
+      });
+      continue;
+    }
+
+    // 2. Mixed Quintet Double (5 Cards: 2 Landscapes + 3 Portraits: [L, P, P, P, L])
+    if (lRem >= 2 && pRem >= 3 && rowIndex % 4 === 1) {
+      const l1 = landscapes[lIdx++];
+      const p1 = portraits[pIdx++];
+      const p2 = portraits[pIdx++];
+      const p3 = portraits[pIdx++];
+      const l2 = landscapes[lIdx++];
+      rows.push({
+        id: `row-${rowIndex}`,
+        pattern: 'mixed-quint-2l-3p',
+        items: [
+          { project: l1, orientation: 'landscape', flexGrow: 3.1605 },
+          { project: p1, orientation: 'portrait', flexGrow: 1 },
+          { project: p2, orientation: 'portrait', flexGrow: 1 },
+          { project: p3, orientation: 'portrait', flexGrow: 1 },
+          { project: l2, orientation: 'landscape', flexGrow: 3.1605 },
+        ],
+      });
+      continue;
+    }
+
+    // 3. Mixed Quintet (5 Cards: 1 Landscape + 4 Portraits: [P, P, L, P, P])
+    if (lRem >= 1 && pRem >= 4 && rowIndex % 3 !== 2) {
+      const p1 = portraits[pIdx++];
+      const p2 = portraits[pIdx++];
+      const l1 = landscapes[lIdx++];
+      const p3 = portraits[pIdx++];
+      const p4 = portraits[pIdx++];
+      rows.push({
+        id: `row-${rowIndex}`,
+        pattern: 'mixed-quint-1l-4p',
+        items: [
+          { project: p1, orientation: 'portrait', flexGrow: 1 },
+          { project: p2, orientation: 'portrait', flexGrow: 1 },
+          { project: l1, orientation: 'landscape', flexGrow: 3.1605 },
+          { project: p3, orientation: 'portrait', flexGrow: 1 },
+          { project: p4, orientation: 'portrait', flexGrow: 1 },
+        ],
+      });
+      continue;
+    }
+
+    // 4. Mixed Quad (4 Cards: 2 Landscapes + 2 Portraits: [L, P, P, L])
+    if (lRem >= 2 && pRem >= 2 && rowIndex % 2 === 1) {
+      const l1 = landscapes[lIdx++];
+      const p1 = portraits[pIdx++];
+      const p2 = portraits[pIdx++];
+      const l2 = landscapes[lIdx++];
+      rows.push({
+        id: `row-${rowIndex}`,
+        pattern: 'mixed-quad-2l-2p',
+        items: [
+          { project: l1, orientation: 'landscape', flexGrow: 3.1605 },
+          { project: p1, orientation: 'portrait', flexGrow: 1 },
+          { project: p2, orientation: 'portrait', flexGrow: 1 },
+          { project: l2, orientation: 'landscape', flexGrow: 3.1605 },
+        ],
+      });
+      continue;
+    }
+
+    // 5. Mixed Quad (4 Cards: 1 Landscape + 3 Portraits: [P, L, P, P])
+    if (lRem >= 1 && pRem >= 3) {
+      const p1 = portraits[pIdx++];
+      const l1 = landscapes[lIdx++];
+      const p2 = portraits[pIdx++];
+      const p3 = portraits[pIdx++];
+      rows.push({
+        id: `row-${rowIndex}`,
+        pattern: 'mixed-quad-1l-3p',
+        items: [
+          { project: p1, orientation: 'portrait', flexGrow: 1 },
+          { project: l1, orientation: 'landscape', flexGrow: 3.1605 },
+          { project: p2, orientation: 'portrait', flexGrow: 1 },
+          { project: p3, orientation: 'portrait', flexGrow: 1 },
+        ],
+      });
+      continue;
+    }
+
+    // 6. Hexad Portraits (6 Cards)
+    if (pRem >= 6) {
+      const items = [];
+      for (let i = 0; i < 6; i++) {
+        items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+      }
+      rows.push({ id: `row-${rowIndex}`, pattern: 'hexad-portrait', items });
+      continue;
+    }
+
+    // 7. Pentet Portraits (5 Cards)
+    if (pRem >= 5) {
+      const items = [];
+      for (let i = 0; i < 5; i++) {
+        items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+      }
+      rows.push({ id: `row-${rowIndex}`, pattern: 'pentet-portrait', items });
+      continue;
+    }
+
+    // 8. Quartet Portraits (4 Cards)
+    if (pRem >= 4) {
+      const items = [];
+      for (let i = 0; i < 4; i++) {
+        items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+      }
+      rows.push({ id: `row-${rowIndex}`, pattern: 'quartet-portrait', items });
+      continue;
+    }
+
+    // 9. Quartet Landscapes (4 Cards)
+    if (lRem >= 4) {
+      const items = [];
+      for (let i = 0; i < 4; i++) {
+        items.push({ project: landscapes[lIdx++], orientation: 'landscape', flexGrow: 1 });
+      }
+      rows.push({ id: `row-${rowIndex}`, pattern: 'quartet-landscape', items });
+      continue;
+    }
+
+    // 10. Mixed Trio Compact (1 Landscape + 2 Portraits: [P, L, P])
+    if (lRem >= 1 && pRem >= 2) {
+      const p1 = portraits[pIdx++];
+      const l1 = landscapes[lIdx++];
+      const p2 = portraits[pIdx++];
+      rows.push({
+        id: `row-${rowIndex}`,
+        pattern: 'mixed-trio-compact',
+        items: [
+          { project: p1, orientation: 'portrait', flexGrow: 1 },
+          { project: l1, orientation: 'landscape', flexGrow: 3.1605 },
+          { project: p2, orientation: 'portrait', flexGrow: 1 },
+        ],
+      });
+      continue;
+    }
+
+    // 11. Trio Landscapes Compact (3 Cards)
+    if (lRem >= 3) {
+      const items = [];
+      for (let i = 0; i < 3; i++) {
+        items.push({ project: landscapes[lIdx++], orientation: 'landscape', flexGrow: 1 });
+      }
+      rows.push({ id: `row-${rowIndex}`, pattern: 'trio-landscape-compact', items });
+      continue;
+    }
+
+    // 12. Trio Portraits Compact (3 Cards)
+    if (pRem >= 3) {
+      const items = [];
+      for (let i = 0; i < 3; i++) {
+        items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+      }
+      rows.push({ id: `row-${rowIndex}`, pattern: 'trio-portrait-compact', items });
+      continue;
+    }
+
+    // 13. Mixed Pair Compact (1 Landscape + 1 Portrait)
+    if (lRem >= 1 && pRem >= 1) {
+      const l1 = landscapes[lIdx++];
+      const p1 = portraits[pIdx++];
+      rows.push({
+        id: `row-${rowIndex}`,
+        pattern: 'mixed-pair-compact',
+        items: [
+          { project: l1, orientation: 'landscape', flexGrow: 3.1605 },
+          { project: p1, orientation: 'portrait', flexGrow: 1 },
+        ],
+      });
+      continue;
+    }
+
+    // 14. Duo Landscapes Compact (2 Cards)
+    if (lRem >= 2) {
+      const items = [];
+      for (let i = 0; i < 2; i++) {
+        items.push({ project: landscapes[lIdx++], orientation: 'landscape', flexGrow: 1 });
+      }
+      rows.push({ id: `row-${rowIndex}`, pattern: 'duo-landscape-compact', items });
+      continue;
+    }
+
+    // 15. Duo Portraits Compact (2 Cards)
+    if (pRem >= 2) {
+      const items = [];
+      for (let i = 0; i < 2; i++) {
+        items.push({ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 });
+      }
+      rows.push({ id: `row-${rowIndex}`, pattern: 'duo-portrait-compact', items });
+      continue;
+    }
+
+    // 16. Solo Landscape Compact (1 Card)
+    if (lRem === 1) {
+      rows.push({
+        id: `row-${rowIndex}`,
+        pattern: 'solo-landscape-compact',
+        items: [{ project: landscapes[lIdx++], orientation: 'landscape', flexGrow: 1 }],
+      });
+      continue;
+    }
+
+    // 17. Solo Portrait Compact (1 Card)
+    if (pRem === 1) {
+      rows.push({
+        id: `row-${rowIndex}`,
+        pattern: 'solo-portrait-compact',
+        items: [{ project: portraits[pIdx++], orientation: 'portrait', flexGrow: 1 }],
+      });
+      continue;
+    }
+  }
+
+  return rows;
+};
+
+const getRowStyleClass = (pattern) => {
+  switch (pattern) {
+    case 'hexad-portrait':
+      return styles.rowHexadPortrait;
+    case 'mixed-hexad-1l-5p':
+      return styles.rowMixedHexad1L5P;
+    case 'mixed-quint-1l-4p':
+      return styles.rowMixedQuint1L4P;
+    case 'mixed-quint-2l-3p':
+      return styles.rowMixedQuint2L3P;
+    case 'pentet-portrait':
+      return styles.rowPentetPortrait;
+    case 'pentet-landscape':
+      return styles.rowPentetLandscape;
+    case 'quartet-portrait':
+      return styles.rowQuartetPortrait;
+    case 'quartet-landscape':
+      return styles.rowQuartetLandscape;
+    case 'mixed-quad-1l-3p':
+      return styles.rowMixedQuad1L3P;
+    case 'mixed-quad-2l-2p':
+      return styles.rowMixedQuad2L2P;
+    case 'mixed-trio-compact':
+      return styles.rowMixedTrioCompact;
+    case 'trio-landscape-compact':
+      return styles.rowTrioLandscapeCompact;
+    case 'trio-portrait-compact':
+      return styles.rowTrioPortraitCompact;
+    case 'duo-landscape-compact':
+      return styles.rowDuoLandscapeCompact;
+    case 'duo-portrait-compact':
+      return styles.rowDuoPortraitCompact;
+    case 'mixed-pair-compact':
+      return styles.rowMixedPairCompact;
+    case 'solo-landscape-compact':
+      return styles.rowSoloLandscapeCompact;
+    case 'solo-portrait-compact':
+      return styles.rowSoloPortraitCompact;
+    default:
+      return '';
+  }
 };
 
 export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
@@ -71,6 +530,40 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeVideoProject, setActiveVideoProject] = useState(null);
+
+  // Dynamic Thumbnail Dimension & Orientation Tracking (Portrait vs Landscape)
+  const [projectAspectRatios, setProjectAspectRatios] = useState({});
+  const [projectOrientations, setProjectOrientations] = useState({});
+
+  // 3D Card Interactive Pop & Tilt Dynamics on Video Hover
+  const handleCardMouseEnter = (e) => {
+    if (isReorderMode) return;
+    const card = e.currentTarget;
+    card.style.transition = 'transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease';
+  };
+
+  const handleCardMouseMove = (e) => {
+    if (isReorderMode) return;
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const normX = (e.clientX - rect.left) / rect.width - 0.5;
+    const normY = (e.clientY - rect.top) / rect.height - 0.5;
+
+    // Snappy, tactile 3D pop & tilt towards cursor
+    const tiltX = -normY * 9;
+    const tiltY = normX * 9;
+
+    card.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) translate3d(0, -8px, 22px) scale3d(1.025, 1.025, 1.025)`;
+  };
+
+  const handleCardMouseLeave = (e) => {
+    if (isReorderMode) return;
+    const card = e.currentTarget;
+    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translate3d(0, 0, 0) scale3d(1, 1, 1)';
+    card.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease';
+  };
 
   // Video Reordering States
   const [isReorderMode, setIsReorderMode] = useState(false);
@@ -131,10 +624,16 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
   // Filter projects by active category for Stage 2, preserving order
   const categoryProjects = useMemo(() => {
     if (!decodedCategory) return [];
+    const isAll =
+      decodedCategory.toLowerCase() === 'all' ||
+      decodedCategory.toLowerCase() === 'all projects' ||
+      decodedCategory.toLowerCase() === 'all videos';
+
     return projects
-      .filter(
-        (p) => (p.category || 'General').toLowerCase() === decodedCategory.toLowerCase()
-      )
+      .filter((p) => {
+        if (isAll) return true;
+        return (p.category || 'General').toLowerCase() === decodedCategory.toLowerCase();
+      })
       .sort((a, b) => {
         const orderA = a.order ?? 0;
         const orderB = b.order ?? 0;
@@ -233,14 +732,265 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
   // Active Category metadata object
   const currentCategoryMeta = useMemo(() => {
     if (!decodedCategory) return null;
-    return categoriesList.find((c) => c.name.toLowerCase() === decodedCategory.toLowerCase()) || {
-      id: '01',
-      name: decodedCategory,
-      discipline: `${decodedCategory.toUpperCase()} ARCHIVE`,
-      description: `Collection of projects under ${decodedCategory}.`,
-      projectCount: categoryProjects.length,
-    };
+    const isAll =
+      decodedCategory.toLowerCase() === 'all' ||
+      decodedCategory.toLowerCase() === 'all projects' ||
+      decodedCategory.toLowerCase() === 'all videos';
+
+    if (isAll) {
+      return {
+        id: 'ALL',
+        name: 'All Projects',
+        discipline: 'COMPLETE PORTFOLIO ARCHIVE',
+        description: `Full collection of ${categoryProjects.length} commercial, narrative, and vertical video productions.`,
+        projectCount: categoryProjects.length,
+      };
+    }
+
+    return (
+      categoriesList.find((c) => c.name.toLowerCase() === decodedCategory.toLowerCase()) || {
+        id: '01',
+        name: decodedCategory,
+        discipline: `${decodedCategory.toUpperCase()} ARCHIVE`,
+        description: `Collection of projects under ${decodedCategory}.`,
+        projectCount: categoryProjects.length,
+      }
+    );
   }, [decodedCategory, categoriesList, categoryProjects]);
+
+  // Record natural aspect ratio and determine portrait vs landscape
+  const handleImageDimension = (projectId, width, height) => {
+    if (!width || !height) return;
+    const ratio = width / height;
+    const orientation = ratio < 0.95 ? 'portrait' : 'landscape';
+    setProjectAspectRatios((prev) => {
+      if (prev[projectId] === ratio) return prev;
+      return { ...prev, [projectId]: ratio };
+    });
+    setProjectOrientations((prev) => {
+      if (prev[projectId] === orientation) return prev;
+      return { ...prev, [projectId]: orientation };
+    });
+  };
+
+  // Ratio filtering and smart arrangement states
+  const [ratioFilter, setRatioFilter] = useState('all'); // 'all' | 'portrait' | 'landscape'
+  const [groupByRatio, setGroupByRatio] = useState(true); // arrange videos according to card ratio
+
+  // Preload and measure thumbnails whenever categoryProjects changes
+  useEffect(() => {
+    if (!categoryProjects || categoryProjects.length === 0) return;
+
+    categoryProjects.forEach((p) => {
+      // Check if YouTube Shorts URL even if no custom thumbnail provided
+      const isShorts = p.url && p.url.includes('/shorts/');
+      if (isShorts && !p.thumbnailUrl) {
+        handleImageDimension(p.id, 9, 16);
+      }
+
+      if (!p.thumbnailUrl) return;
+      const formatted = formatImageSrc(p.thumbnailUrl);
+      if (!formatted) return;
+
+      const img = new Image();
+      img.referrerPolicy = 'no-referrer';
+      img.onload = () => {
+        if (img.naturalWidth && img.naturalHeight) {
+          handleImageDimension(p.id, img.naturalWidth, img.naturalHeight);
+        }
+      };
+      img.src = formatted;
+    });
+  }, [categoryProjects]);
+
+  // Check if current category is predominantly portrait (or labeled Reels / Shorts / TikTok / Vertical / Model)
+  const isPortraitCategory = useMemo(() => {
+    const nameLower = (currentCategoryMeta?.name || '').toLowerCase();
+    const nameSuggestsPortrait = /reel|short|tiktok|vertical|story|stories|portrait|shoot|model/i.test(nameLower);
+    if (nameSuggestsPortrait) return true;
+
+    if (!categoryProjects || categoryProjects.length === 0) return false;
+    let portraitCount = 0;
+    categoryProjects.forEach((p) => {
+      const isShorts = p.url && p.url.includes('/shorts/');
+      if (projectOrientations[p.id] === 'portrait' || isShorts) {
+        portraitCount++;
+      }
+    });
+    return portraitCount >= categoryProjects.length / 2;
+  }, [categoryProjects, projectOrientations, currentCategoryMeta]);
+
+  // Reliable orientation lookup for any project
+  const getProjectOrientation = (project) => {
+    if (!project) return 'portrait';
+    if (projectOrientations[project.id]) return projectOrientations[project.id];
+    if (project.url && project.url.includes('/shorts/')) return 'portrait';
+    const cat = (project.category || '').toLowerCase();
+    if (/reel|short|tiktok|vertical|story|stories|portrait|shoot|model/i.test(cat)) {
+      return 'portrait';
+    }
+    return isPortraitCategory ? 'portrait' : 'landscape';
+  };
+
+  // Compute counts for ratio tabs
+  const { portraitCount, landscapeCount } = useMemo(() => {
+    let pCount = 0;
+    let lCount = 0;
+    categoryProjects.forEach((p) => {
+      if (getProjectOrientation(p) === 'portrait') pCount++;
+      else lCount++;
+    });
+    return { portraitCount: pCount, landscapeCount: lCount };
+  }, [categoryProjects, projectOrientations, isPortraitCategory]);
+
+  // Reorder mode: one-click auto-packing videos into zero-empty-space sequence (16:9 & 9:16)
+  const handleAutoGroupByRatio = () => {
+    const list = [...orderedCategoryProjects];
+    const rows = packIntoZeroGapRows(list, getProjectOrientation);
+    const flattened = rows.flatMap((r) => r.items.map((item) => item.project));
+    setOrderedCategoryProjects(flattened);
+    showToast('Videos rearranged into zero-empty-space mosaic! Click "SAVE NEW ORDER" to persist.');
+  };
+
+  // Active source projects for Stage 2
+  const sourceProjects = useMemo(() => {
+    return isReorderMode ? orderedCategoryProjects : categoryProjects;
+  }, [isReorderMode, orderedCategoryProjects, categoryProjects]);
+
+  // Zero-empty-space packed mosaic rows (Strictly 16:9 & 9:16)
+  const mosaicRows = useMemo(() => {
+    return packIntoZeroGapRows(sourceProjects, getProjectOrientation);
+  }, [sourceProjects, projectOrientations, isPortraitCategory]);
+
+  // Single-format displayed projects when user clicks 9:16 or 16:9 tabs
+  const displayedProjects = useMemo(() => {
+    if (ratioFilter === 'portrait') {
+      return sourceProjects.filter((p) => getProjectOrientation(p) === 'portrait');
+    }
+    if (ratioFilter === 'landscape') {
+      return sourceProjects.filter((p) => getProjectOrientation(p) === 'landscape');
+    }
+    return sourceProjects;
+  }, [sourceProjects, ratioFilter, projectOrientations, isPortraitCategory]);
+
+  // Reusable card renderer enforcing strict 16:9 and 9:16 card ratios
+  const renderProjectCard = (project, index, customFlex = null) => {
+    const orientation = getProjectOrientation(project);
+    const isPortrait = orientation === 'portrait';
+
+    return (
+      <article
+        key={project.id}
+        className={`${styles.projectCard} ${
+          isPortrait ? styles.projectCardPortrait : styles.projectCardLandscape
+        } ${isReorderMode ? styles.projectCardReorderable : ''} ${
+          draggedIndex === index ? styles.cardDragging : ''
+        } ${dragOverIndex === index ? styles.cardDragOver : ''}`}
+        style={customFlex ? { flex: customFlex } : undefined}
+        draggable={isReorderMode}
+        onMouseEnter={!isReorderMode ? handleCardMouseEnter : undefined}
+        onMouseMove={!isReorderMode ? handleCardMouseMove : undefined}
+        onMouseLeave={!isReorderMode ? handleCardMouseLeave : undefined}
+        onDragStart={isReorderMode ? (e) => handleDragStart(e, index) : undefined}
+        onDragOver={isReorderMode ? (e) => handleDragOver(e, index) : undefined}
+        onDrop={isReorderMode ? (e) => handleDrop(e, index) : undefined}
+        onDragEnd={isReorderMode ? handleDragEnd : undefined}
+        data-cursor={!isReorderMode ? 'card' : undefined}
+        data-cursor-text="WATCH"
+        onClick={!isReorderMode ? () => setActiveVideoProject(project) : undefined}
+      >
+        {isReorderMode && (
+          <div className={styles.reorderControlHeader}>
+            <div className={styles.reorderIndexBadge}>
+              <span className={styles.dragHandleIcon} title="Drag to rearrange">⠿</span>
+              <span className={styles.indexNum}>#{index + 1}</span>
+            </div>
+            <div className={styles.shiftButtonGroup}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  moveProject(index, index - 1);
+                }}
+                disabled={index === 0}
+                className={styles.shiftBtn}
+                title="Move Up"
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  moveProject(index, index + 1);
+                }}
+                disabled={index === sourceProjects.length - 1}
+                className={styles.shiftBtn}
+                title="Move Down"
+              >
+                ▼
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div
+          className={`${styles.thumbnailStage} ${
+            isPortrait ? styles.portraitStage : styles.landscapeStage
+          }`}
+        >
+          {/* Strict Aspect Ratio Badge: 9:16 or 16:9 */}
+          <span className={styles.cardRatioBadge}>
+            {isPortrait ? '9:16' : '16:9'}
+          </span>
+
+          {/* Static Thumbnail Backdrop (Always shown - pristine thumbnail only) */}
+          {project.thumbnailUrl ? (
+            <img
+              src={formatImageSrc(project.thumbnailUrl)}
+              alt={project.description || "Project thumbnail"}
+              className={styles.thumbnailImg}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              onLoad={(e) => {
+                if (e.target.naturalWidth && e.target.naturalHeight) {
+                  handleImageDimension(project.id, e.target.naturalWidth, e.target.naturalHeight);
+                }
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                const ph = e.target.parentElement?.querySelector(`.${styles.placeholderStage}`);
+                if (ph) ph.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div
+            className={styles.placeholderStage}
+            style={{ display: project.thumbnailUrl ? 'none' : 'flex' }}
+          >
+            <span className={styles.playIconLarge}>▶</span>
+            <span>WATCH FILM</span>
+          </div>
+        </div>
+
+        {(project.description || isReorderMode) && (
+          <div className={styles.projectInfo}>
+            {project.description && (
+              <p className={styles.projectDesc}>{project.description}</p>
+            )}
+
+            {isReorderMode && (
+              <div className={styles.projectActionRow}>
+                <span className={styles.watchText}>
+                  DRAG OR USE ▲ ▼ TO MOVE
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </article>
+    );
+  };
 
   return (
     <section
@@ -317,6 +1067,33 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
               </div>
             ) : categoriesList.length > 0 ? (
               <div className={styles.categoriesGrid}>
+                {/* ALL PROJECTS COMPLETE ARCHIVE CARD */}
+                <div
+                  className={`${styles.categoryCard} ${styles.allCategoryCard}`}
+                  data-tilt
+                  data-magnetic
+                  onClick={() => navigate('/work/All')}
+                >
+                  <div className={styles.catCardTop}>
+                    <span className={styles.catIndex}>[ALL]</span>
+                    <span className={styles.catCountBadge}>
+                      {projects.length} {projects.length === 1 ? 'PROJECT' : 'PROJECTS'}
+                    </span>
+                  </div>
+
+                  <div className={styles.catCardBody}>
+                    <span className={styles.catDiscipline}>COMPLETE ARCHIVE // 16:9 & 9:16</span>
+                    <h2 className={styles.catTitle}>ALL PROJECTS</h2>
+                    <p className={styles.catDesc}>
+                      Explore all published videos and vertical reels in a balanced zero-empty-space mosaic archive.
+                    </p>
+                  </div>
+
+                  <div className={styles.catCardFooter}>
+                    <span className={styles.exploreLink}>EXPLORE ALL VIDEOS →</span>
+                  </div>
+                </div>
+
                 {categoriesList.map((cat) => (
                   <div
                     key={cat.name}
@@ -413,6 +1190,14 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
                 <div className={styles.reorderActions}>
                   <button
                     type="button"
+                    onClick={handleAutoGroupByRatio}
+                    className={styles.autoGroupBtn}
+                    title="Automatically arrange videos into balanced rows so all 9:16 vertical and 16:9 widescreen videos fill every row with zero empty space"
+                  >
+                    ⚡ AUTO-PACK (NO EMPTY SPACE)
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleCancelReorder}
                     className={styles.cancelReorderBtn}
                     disabled={isSavingOrder}
@@ -438,116 +1223,90 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
               <p className={styles.categoryDesc}>{currentCategoryMeta?.description}</p>
             </header>
 
-            {/* Projects Grid */}
+            {/* Aspect Ratio Filter & Smart Arrangement Control Bar */}
+            {categoryProjects.length > 0 && !isReorderMode && (
+              <div className={styles.filterControlBar}>
+                <div className={styles.ratioTabs}>
+                  <button
+                    type="button"
+                    className={`${styles.ratioTab} ${ratioFilter === 'all' ? styles.ratioTabActive : ''}`}
+                    onClick={() => setRatioFilter('all')}
+                  >
+                    <span>ALL (BALANCED MOSAIC)</span>
+                    <span className={styles.tabCountBadge}>{sourceProjects.length}</span>
+                  </button>
+
+                  {portraitCount > 0 && (
+                    <button
+                      type="button"
+                      className={`${styles.ratioTab} ${ratioFilter === 'portrait' ? styles.ratioTabActive : ''}`}
+                      onClick={() => setRatioFilter('portrait')}
+                    >
+                      <span className={styles.tabIcon}>📱</span>
+                      <span>VERTICAL (9:16)</span>
+                      <span className={styles.tabCountBadge}>{portraitCount}</span>
+                    </button>
+                  )}
+
+                  {landscapeCount > 0 && (
+                    <button
+                      type="button"
+                      className={`${styles.ratioTab} ${ratioFilter === 'landscape' ? styles.ratioTabActive : ''}`}
+                      onClick={() => setRatioFilter('landscape')}
+                    >
+                      <span className={styles.tabIcon}>🎬</span>
+                      <span>CINEMATIC (16:9)</span>
+                      <span className={styles.tabCountBadge}>{landscapeCount}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Projects Grid — Zero Empty Space Mosaic Layout */}
             {loading ? (
               <div className={styles.loadingBox}>
                 <div className={styles.spinner} />
                 <p>Fetching projects for {currentCategoryMeta?.name}...</p>
               </div>
-            ) : (isReorderMode ? orderedCategoryProjects : categoryProjects).length > 0 ? (
-              <div className={styles.projectsGrid}>
-                {(isReorderMode ? orderedCategoryProjects : categoryProjects).map((project, index) => (
-                  <article
-                    key={project.id}
-                    className={`${styles.projectCard} ${isReorderMode ? styles.projectCardReorderable : ''} ${
-                      draggedIndex === index ? styles.cardDragging : ''
-                    } ${dragOverIndex === index ? styles.cardDragOver : ''}`}
-                    draggable={isReorderMode}
-                    onDragStart={isReorderMode ? (e) => handleDragStart(e, index) : undefined}
-                    onDragOver={isReorderMode ? (e) => handleDragOver(e, index) : undefined}
-                    onDrop={isReorderMode ? (e) => handleDrop(e, index) : undefined}
-                    onDragEnd={isReorderMode ? handleDragEnd : undefined}
-                    data-tilt={!isReorderMode}
-                    onClick={!isReorderMode ? () => setActiveVideoProject(project) : undefined}
-                  >
-                    {isReorderMode && (
-                      <div className={styles.reorderControlHeader}>
-                        <div className={styles.reorderIndexBadge}>
-                          <span className={styles.dragHandleIcon} title="Drag to rearrange">⠿</span>
-                          <span className={styles.indexNum}>#{index + 1}</span>
-                        </div>
-                        <div className={styles.shiftButtonGroup}>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              moveProject(index, index - 1);
-                            }}
-                            disabled={index === 0}
-                            className={styles.shiftBtn}
-                            title="Move Up"
-                          >
-                            ▲
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              moveProject(index, index + 1);
-                            }}
-                            disabled={index === orderedCategoryProjects.length - 1}
-                            className={styles.shiftBtn}
-                            title="Move Down"
-                          >
-                            ▼
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className={styles.thumbnailStage}>
-                      {project.thumbnailUrl ? (
-                        <img
-                          src={formatImageSrc(project.thumbnailUrl)}
-                          alt="Project thumbnail"
-                          className={styles.thumbnailImg}
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            const ph = e.target.parentElement?.querySelector(`.${styles.placeholderStage}`);
-                            if (ph) ph.style.display = 'flex';
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        className={styles.placeholderStage}
-                        style={{ display: project.thumbnailUrl ? 'none' : 'flex' }}
-                      >
-                        <span className={styles.playIconLarge}>▶</span>
-                        <span>WATCH FILM</span>
-                      </div>
-
-                      {!isReorderMode && (
-                        <div className={styles.stageOverlay}>
-                          <button type="button" className={styles.playBadgeBtn}>
-                            ▶ PLAY VIDEO
-                          </button>
-                        </div>
-                      )}
+            ) : sourceProjects.length > 0 ? (
+              ratioFilter === 'all' ? (
+                /* Balanced Mosaic Rows (Zero Empty Space, strictly 16:9 and 9:16) */
+                <div className={styles.mosaicContainer}>
+                  {mosaicRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className={`${styles.mosaicRow} ${getRowStyleClass(row.pattern)}`}
+                    >
+                      {row.items.map((item) => {
+                        const itemIndex = sourceProjects.findIndex((p) => p.id === item.project.id);
+                        const flexVal = item.flexGrow ? `${item.flexGrow} 1 0%` : undefined;
+                        return renderProjectCard(
+                          item.project,
+                          itemIndex >= 0 ? itemIndex : 0,
+                          flexVal
+                        );
+                      })}
                     </div>
-
-                    <div className={styles.projectInfo}>
-                      <div className={styles.projectMetaRow}>
-                        <span className={styles.catPill}>{project.category}</span>
-                        <span className={styles.dateBadge}>
-                          {isReorderMode ? `POSITION #${index + 1}` : new Date(project.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      {project.description && (
-                        <p className={styles.projectDesc}>{project.description}</p>
-                      )}
-
-                      <div className={styles.projectActionRow}>
-                        <span className={styles.watchText}>
-                          {isReorderMode ? 'DRAG OR USE ▲ ▼ TO MOVE' : 'CLICK TO PLAY ↗'}
-                        </span>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                /* Single Format Grids (Strict 9:16 or 16:9) */
+                <div
+                  className={`${styles.formatGrid} ${
+                    ratioFilter === 'portrait' ? styles.formatGridPortrait : styles.formatGridLandscape
+                  }`}
+                >
+                  {displayedProjects.map((project, idx) => {
+                    const originalIdx = sourceProjects.findIndex((p) => p.id === project.id);
+                    return renderProjectCard(
+                      project,
+                      originalIdx >= 0 ? originalIdx : idx,
+                      null
+                    );
+                  })}
+                </div>
+              )
             ) : (
               /* Empty Category State */
               <div className={styles.emptyBox}>
@@ -574,75 +1333,90 @@ export const Work = ({ id = 'work', actionLink = null, isPreview = false }) => {
       {/* =================================================================
          CINEMA VIDEO PLAYER MODAL
          ================================================================= */}
-      {activeVideoProject && (
-        <div
-          className={styles.modalOverlay}
-          onClick={() => setActiveVideoProject(null)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div className={styles.modalTitleBlock}>
-                <span className={styles.modalCatTag}>[{activeVideoProject.category}]</span>
-                <h3 className={styles.modalTitle}>
-                  {activeVideoProject.description || activeVideoProject.category || 'Featured Project'}
-                </h3>
+      {activeVideoProject && (() => {
+        const isCurrentActivePortrait =
+          projectOrientations[activeVideoProject.id] === 'portrait' ||
+          (activeVideoProject.url && activeVideoProject.url.includes('/shorts/'));
+
+        return (
+          <div
+            className={styles.modalOverlay}
+            onClick={() => setActiveVideoProject(null)}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div
+              className={`${styles.modalCard} ${
+                isCurrentActivePortrait ? styles.modalCardPortrait : ''
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={styles.modalHeader}>
+                <div className={styles.modalTitleBlock}>
+                  <span className={styles.modalCatTag}>[{activeVideoProject.category}]</span>
+                  <h3 className={styles.modalTitle}>
+                    {activeVideoProject.description || activeVideoProject.category || 'Featured Project'}
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveVideoProject(null)}
+                  className={styles.modalCloseBtn}
+                  aria-label="Close Video Player"
+                >
+                  <span>CLOSE [ESC]</span>
+                  <span className={styles.closeX}>✕</span>
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setActiveVideoProject(null)}
-                className={styles.modalCloseBtn}
-                aria-label="Close Video Player"
+              {/* Video Stage */}
+              <div
+                className={`${styles.videoContainer} ${
+                  isCurrentActivePortrait ? styles.videoContainerPortrait : ''
+                }`}
               >
-                <span>CLOSE [ESC]</span>
-                <span className={styles.closeX}>✕</span>
-              </button>
-            </div>
+                {(() => {
+                  const source = parseMediaSource(activeVideoProject.url);
+                  if (source.type === 'iframe') {
+                    return (
+                      <>
+                        <iframe
+                          src={source.src}
+                          title={activeVideoProject.description || activeVideoProject.category || 'Project Video'}
+                          className={styles.iframePlayer}
+                          allow="autoplay; fullscreen; picture-in-picture"
+                          allowFullScreen
+                        />
+                        <div className={styles.iframeTopShield} aria-hidden="true" />
+                      </>
+                    );
+                  }
 
-            {/* Video Stage */}
-            <div className={styles.videoContainer}>
-              {(() => {
-                const source = parseMediaSource(activeVideoProject.url);
-                if (source.type === 'iframe') {
                   return (
-                    <>
-                      <iframe
-                        src={source.src}
-                        title={activeVideoProject.description || activeVideoProject.category || 'Project Video'}
-                        className={styles.iframePlayer}
-                        allow="autoplay; fullscreen; picture-in-picture"
-                        allowFullScreen
-                      />
-                      <div className={styles.iframeTopShield} aria-hidden="true" />
-                    </>
+                    <video
+                      src={activeVideoProject.url}
+                      controls
+                      autoPlay
+                      playsInline
+                      className={styles.htmlVideoPlayer}
+                      poster={formatImageSrc(activeVideoProject.thumbnailUrl)}
+                    >
+                      Your browser does not support HTML5 video streaming.
+                    </video>
                   );
-                }
-
-                return (
-                  <video
-                    src={activeVideoProject.url}
-                    controls
-                    autoPlay
-                    playsInline
-                    className={styles.htmlVideoPlayer}
-                    poster={formatImageSrc(activeVideoProject.thumbnailUrl)}
-                  >
-                    Your browser does not support HTML5 video streaming.
-                  </video>
-                );
-              })()}
-            </div>
-
-            {activeVideoProject.description && (
-              <div className={styles.modalFooter}>
-                <p className={styles.modalDesc}>{activeVideoProject.description}</p>
+                })()}
               </div>
-            )}
+
+              {activeVideoProject.description && (
+                <div className={styles.modalFooter}>
+                  <p className={styles.modalDesc}>{activeVideoProject.description}</p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
 
 

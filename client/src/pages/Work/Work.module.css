@@ -103,7 +103,7 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1380px;
   margin: 0 auto;
   box-sizing: border-box;
 }
@@ -150,20 +150,8 @@
 /* Categories Grid */
 .categoriesGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 24px;
-}
-
-@media (max-width: 1024px) {
-  .categoriesGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .categoriesGrid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .categoryCard {
@@ -203,6 +191,18 @@
 
 .categoryCard:hover::before {
   opacity: 1;
+}
+
+.allCategoryCard {
+  background: linear-gradient(145deg, rgba(8, 36, 32, 0.9), rgba(4, 20, 18, 0.95)) !important;
+  border: 1px solid rgba(45, 212, 191, 0.38) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(20, 184, 166, 0.18);
+}
+
+.allCategoryCard:hover {
+  background: linear-gradient(145deg, rgba(12, 48, 42, 0.95), rgba(6, 28, 25, 0.98)) !important;
+  border-color: #2dd4bf !important;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 32px rgba(45, 212, 191, 0.4) !important;
 }
 
 .catCardTop {
@@ -370,60 +370,537 @@
   max-width: 680px;
 }
 
-/* Projects Grid */
-.projectsGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
+/* Aspect Ratio & Arrangement Control Bar */
+.filterControlBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 28px;
+  padding: 10px 16px;
+  background: rgba(6, 24, 22, 0.65);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-@media (max-width: 1024px) {
-  .projectsGrid {
-    grid-template-columns: repeat(2, 1fr);
+.ratioTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ratioTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.ratioTab:hover {
+  background: rgba(20, 184, 166, 0.15);
+  border-color: rgba(20, 184, 166, 0.4);
+  color: #ffffff;
+}
+
+.ratioTabActive {
+  background: rgba(20, 184, 166, 0.22) !important;
+  border-color: #14b8a6 !important;
+  color: #5eead4 !important;
+  box-shadow: 0 0 14px rgba(20, 184, 166, 0.3);
+}
+
+.tabIcon {
+  font-size: 0.75rem;
+}
+
+.tabCountBadge {
+  padding: 1px 6px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 9999px;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.ratioTabActive .tabCountBadge {
+  background: rgba(20, 184, 166, 0.35);
+  color: #ffffff;
+}
+
+.filterRightActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ratioArrangeBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.ratioArrangeBtn:hover {
+  background: rgba(20, 184, 166, 0.15);
+  border-color: rgba(20, 184, 166, 0.4);
+  color: #ffffff;
+}
+
+.ratioArrangeActive {
+  background: rgba(20, 184, 166, 0.2) !important;
+  border-color: #14b8a6 !important;
+  color: #5eead4 !important;
+  box-shadow: 0 0 12px rgba(20, 184, 166, 0.25);
+}
+
+.arrangeIcon {
+  color: #14b8a6;
+}
+
+.autoGroupBtn {
+  padding: 7px 14px;
+  background: rgba(20, 184, 166, 0.18);
+  border: 1px solid #14b8a6;
+  border-radius: 6px;
+  color: #5eead4;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.autoGroupBtn:hover {
+  background: #14b8a6;
+  color: #030d0c;
+  box-shadow: 0 0 16px rgba(20, 184, 166, 0.5);
+}
+
+/* =================================================================
+   IRREGULAR, COMPACT ZERO-GAP MOSAIC ROWS (SMALLER CARDS)
+   ================================================================= */
+/* =================================================================
+   IRREGULAR, COMPACT ZERO-GAP MOSAIC ROWS (SMALLER CARDS)
+   ================================================================= */
+.mosaicContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mosaicRow {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 6 Portraits: ~16.6% width each (Ultra-sleek, compact vertical cards) */
+.rowHexadPortrait {
+  justify-content: space-between;
+}
+.rowHexadPortrait .projectCard {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* Mixed Hexad: 1 Landscape (~38.7%) + 5 Portraits (~12.2% each) */
+.rowMixedHexad1L5P {
+  justify-content: space-between;
+}
+.rowMixedHexad1L5P .projectCard {
+  min-width: 0;
+}
+
+/* 5 Portraits: 20% width each (Super compact vertical reels) */
+.rowPentetPortrait {
+  justify-content: space-between;
+}
+.rowPentetPortrait .projectCard {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* 5 Landscapes: 20% width each (Compact widescreen) */
+.rowPentetLandscape {
+  justify-content: space-between;
+}
+.rowPentetLandscape .projectCard {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* Mixed Quintet: 1 Landscape (44.1%) + 4 Portraits (13.9% each) */
+.rowMixedQuint1L4P {
+  justify-content: space-between;
+}
+.rowMixedQuint1L4P .projectCard {
+  min-width: 0;
+}
+
+/* Mixed Quintet Double: 2 Landscapes (33.9% each) + 3 Portraits (10.7% each) */
+.rowMixedQuint2L3P {
+  justify-content: space-between;
+}
+.rowMixedQuint2L3P .projectCard {
+  min-width: 0;
+}
+
+/* 4 Portraits: 25% width each */
+.rowQuartetPortrait {
+  justify-content: space-between;
+}
+.rowQuartetPortrait .projectCard {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* 4 Landscapes: 25% width each (Compact widescreen) */
+.rowQuartetLandscape {
+  justify-content: space-between;
+}
+.rowQuartetLandscape .projectCard {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* Mixed Quad: 1 Landscape (51.3%) + 3 Portraits (16.2% each) */
+.rowMixedQuad1L3P {
+  justify-content: space-between;
+}
+.rowMixedQuad1L3P .projectCard {
+  min-width: 0;
+}
+
+/* Mixed Quad: 2 Landscapes (38% each) + 2 Portraits (12% each) */
+.rowMixedQuad2L2P {
+  justify-content: space-between;
+}
+.rowMixedQuad2L2P .projectCard {
+  min-width: 0;
+}
+
+/* Compact Centered Rows for Small/Trailing Item Counts (Never stretch oversized) */
+.rowMixedTrioCompact {
+  justify-content: center;
+  gap: 10px;
+}
+.rowMixedTrioCompact .projectCard {
+  min-width: 0;
+}
+
+.rowTrioLandscapeCompact {
+  justify-content: center;
+  gap: 10px;
+}
+.rowTrioLandscapeCompact .projectCard {
+  flex: 0 1 360px;
+  max-width: 400px;
+  min-width: 0;
+}
+
+.rowTrioPortraitCompact {
+  justify-content: center;
+  gap: 10px;
+}
+.rowTrioPortraitCompact .projectCard {
+  flex: 0 1 230px;
+  max-width: 260px;
+  min-width: 0;
+}
+
+.rowDuoLandscapeCompact {
+  justify-content: center;
+  gap: 10px;
+}
+.rowDuoLandscapeCompact .projectCard {
+  flex: 0 1 420px;
+  max-width: 460px;
+  min-width: 0;
+}
+
+.rowDuoPortraitCompact {
+  justify-content: center;
+  gap: 10px;
+}
+.rowDuoPortraitCompact .projectCard {
+  flex: 0 1 230px;
+  max-width: 260px;
+  min-width: 0;
+}
+
+.rowMixedPairCompact {
+  justify-content: center;
+  gap: 10px;
+}
+.rowMixedPairCompact .projectCardLandscape {
+  flex: 0 1 420px;
+  max-width: 460px;
+  min-width: 0;
+}
+.rowMixedPairCompact .projectCardPortrait {
+  flex: 0 1 230px;
+  max-width: 260px;
+  min-width: 0;
+}
+
+.rowSoloLandscapeCompact {
+  justify-content: center;
+}
+.rowSoloLandscapeCompact .projectCard {
+  flex: 0 1 500px;
+  max-width: 540px;
+  min-width: 0;
+}
+
+.rowSoloPortraitCompact {
+  justify-content: center;
+}
+.rowSoloPortraitCompact .projectCard {
+  flex: 0 1 240px;
+  max-width: 270px;
+  min-width: 0;
+}
+
+/* Single-Format Grid Views (when ratio filter is active) */
+.formatGrid {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formatGridPortrait {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.formatGridLandscape {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1400px) {
+  .formatGridPortrait {
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
-@media (max-width: 640px) {
-  .projectsGrid {
+@media (max-width: 1100px) {
+  .formatGridPortrait {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .formatGridLandscape {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .mosaicContainer {
+    gap: 8px;
+  }
+  .mosaicRow {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .rowHexadPortrait .projectCard,
+  .rowPentetPortrait .projectCard,
+  .rowQuartetPortrait .projectCard,
+  .rowTrioPortraitCompact .projectCard,
+  .rowDuoPortraitCompact .projectCard {
+    flex: 1 1 calc(50% - 4px) !important;
+    max-width: calc(50% - 4px);
+  }
+  .rowPentetLandscape .projectCard,
+  .rowQuartetLandscape .projectCard,
+  .rowTrioLandscapeCompact .projectCard,
+  .rowDuoLandscapeCompact .projectCard {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+  .rowMixedHexad1L5P .projectCardLandscape,
+  .rowMixedQuint1L4P .projectCardLandscape,
+  .rowMixedQuint2L3P .projectCardLandscape,
+  .rowMixedQuad1L3P .projectCardLandscape,
+  .rowMixedQuad2L2P .projectCardLandscape,
+  .rowMixedTrioCompact .projectCardLandscape,
+  .rowMixedPairCompact .projectCardLandscape {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+  .rowMixedHexad1L5P .projectCardPortrait,
+  .rowMixedQuint1L4P .projectCardPortrait,
+  .rowMixedQuint2L3P .projectCardPortrait,
+  .rowMixedQuad1L3P .projectCardPortrait,
+  .rowMixedQuad2L2P .projectCardPortrait,
+  .rowMixedTrioCompact .projectCardPortrait,
+  .rowMixedPairCompact .projectCardPortrait {
+    flex: 1 1 calc(50% - 4px) !important;
+    max-width: calc(50% - 4px);
+  }
+  .formatGrid {
+    gap: 8px;
+  }
+  .formatGridPortrait {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .formatGridLandscape {
     grid-template-columns: 1fr;
   }
 }
 
+@media (max-width: 480px) {
+  .formatGridPortrait {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rowHexadPortrait .projectCard,
+  .rowPentetPortrait .projectCard,
+  .rowQuartetPortrait .projectCard {
+    flex: 1 1 calc(50% - 4px) !important;
+    max-width: calc(50% - 4px);
+  }
+}
+
+/* Compact, Ultra-Sleek 3D Project Card */
 .projectCard {
-  background: rgba(6, 24, 22, 0.7);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: rgba(6, 24, 22, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
   backdrop-filter: blur(12px);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  box-sizing: border-box;
+  transform-style: preserve-3d;
+  perspective: 1200px;
+  will-change: transform, box-shadow;
+  transition: transform 0.36s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.3s ease,
+              box-shadow 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
+@media (max-width: 768px) {
+  .projectCard {
+    border-radius: 8px;
+  }
+}
+
+.projectCardPortrait {
+  max-width: 100%;
+}
+
+.projectCardLandscape {
+  max-width: 100%;
+}
+
+/* Instant tactile 3D pop on hover */
 .projectCard:hover {
-  transform: translateY(-6px);
-  border-color: rgba(45, 212, 191, 0.45);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(20, 184, 166, 0.25);
+  transform: perspective(1000px) translate3d(0, -8px, 22px) scale3d(1.025, 1.025, 1.025);
+  border-color: rgba(94, 234, 212, 0.68);
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.95),
+              0 12px 24px -6px rgba(0, 0, 0, 0.85),
+              0 0 35px rgba(20, 184, 166, 0.35),
+              0 0 2px 1px rgba(94, 234, 212, 0.5);
+  z-index: 10;
+}
+
+/* Subtle 3D glossy specular sheen on hover */
+.projectCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(94, 234, 212, 0.05) 35%,
+    transparent 65%
+  );
+  opacity: 0;
+  border-radius: inherit;
+  transition: opacity 0.35s ease;
+  z-index: 6;
+}
+
+.projectCard:hover::after {
+  opacity: 1;
 }
 
 .thumbnailStage {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
   background: #000000;
   overflow: hidden;
+  border-radius: 8px 8px 0 0;
+  transition: aspect-ratio 0.25s ease;
+  transform-style: preserve-3d;
+}
+
+.landscapeStage {
+  aspect-ratio: 16 / 9;
+}
+
+.portraitStage {
+  aspect-ratio: 9 / 16;
+}
+
+.cardRatioBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 7px;
+  background: rgba(3, 13, 12, 0.88);
+  border: 1px solid rgba(20, 184, 166, 0.45);
+  border-radius: 4px;
+  font-family: var(--font-mono, 'Space Grotesk', monospace);
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: #5eead4;
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(8px);
+  z-index: 4;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  transform: translateZ(24px);
+  transition: transform 0.3s ease;
 }
 
 .thumbnailImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  display: block;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .projectCard:hover .thumbnailImg {
-  transform: scale(1.05);
+  transform: scale(1.045);
 }
 
 .placeholderStage {
@@ -447,82 +924,68 @@
   filter: drop-shadow(0 0 12px var(--accent-purple, #14b8a6));
 }
 
-.stageOverlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(6, 6, 8, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.projectCard:hover .stageOverlay {
-  opacity: 1;
-}
-
-.playBadgeBtn {
-  padding: 10px 20px;
-  background: var(--accent-purple, #14b8a6);
-  color: #ffffff;
-  border: none;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(20, 184, 166, 0.6);
-}
-
 .projectInfo {
-  padding: 20px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 10px 8px 10px;
+  background: linear-gradient(to top, rgba(3, 13, 12, 0.95) 0%, rgba(3, 13, 12, 0.6) 60%, transparent 100%);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  flex-grow: 1;
-  justify-content: space-between;
+  gap: 3px;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.95;
+  transform: translateZ(20px);
+  transition: opacity 0.2s ease, transform 0.3s ease;
+}
+
+.projectCard:hover .projectInfo {
+  opacity: 1;
 }
 
 .projectMetaRow {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
 }
 
 .catPill {
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 2px 5px;
   background: rgba(20, 184, 166, 0.15);
   color: #99f6e4;
   border-radius: 4px;
 }
 
 .dateBadge {
-  font-size: 0.72rem;
+  font-size: 0.6rem;
   color: rgba(255, 255, 255, 0.4);
 }
 
 .projectDesc {
-  font-size: 0.92rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: #ffffff;
-  line-height: 1.5;
+  line-height: 1.3;
   margin: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
 .projectActionRow {
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  pointer-events: auto;
 }
 
 .watchText {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--accent-purple, #14b8a6);
@@ -620,6 +1083,11 @@
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95);
   display: flex;
   flex-direction: column;
+  transition: max-width 0.3s ease;
+}
+
+.modalCardPortrait {
+  max-width: 480px;
 }
 
 .modalHeader {
@@ -684,6 +1152,12 @@
   aspect-ratio: 16 / 9;
   background: #000000;
   position: relative;
+  transition: aspect-ratio 0.3s ease;
+}
+
+.videoContainerPortrait {
+  aspect-ratio: 9 / 16;
+  max-height: 75vh;
 }
 
 .iframePlayer,

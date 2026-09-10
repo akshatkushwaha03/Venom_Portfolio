@@ -38,6 +38,20 @@ const getHealth = async (req, res, next) => {
   }
 };
 
+/**
+ * Test Google Drive URL utility
+ * GET /api/health/test-gdrive
+ */
+const testGdrive = async (req, res) => {
+  const { url } = req.query;
+  return res.status(200).json({
+    success: true,
+    message: 'Google Drive test route operational',
+    testedUrl: url || null,
+  });
+};
+
 module.exports = {
   getHealth,
+  testGdrive,
 };
